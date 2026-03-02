@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.screen.auth
+package dev.ag6.bs_app.ui.auth
 
 import dev.ag6.bs_app.model.auth.AuthResponse
 

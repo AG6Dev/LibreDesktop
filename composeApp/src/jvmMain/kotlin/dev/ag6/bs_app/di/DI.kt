@@ -2,10 +2,14 @@ package dev.ag6.bs_app.di
 
 import com.russhwolf.settings.PreferencesSettings
 import com.russhwolf.settings.Settings
-import dev.ag6.bs_app.repository.AuthRepository
-import dev.ag6.bs_app.repository.AuthRepositoryImpl
-import dev.ag6.bs_app.screen.auth.AuthScreenModel
+import dev.ag6.bs_app.repository.auth.AuthRepository
+import dev.ag6.bs_app.repository.auth.AuthRepositoryImpl
+import dev.ag6.bs_app.repository.readings.ReadingsRepository
+import dev.ag6.bs_app.repository.readings.ReadingsRepositoryImpl
+import dev.ag6.bs_app.ui.auth.AuthScreenModel
+import dev.ag6.bs_app.ui.overview.OverviewScreenModel
 import io.ktor.client.*
+import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.json.Json
@@ -27,6 +31,9 @@ fun appModule() = module {
                     isLenient = true
                 })
             }
+            install(ContentEncoding) {
+                gzip()
+            }
         }
     }
 
@@ -34,5 +41,9 @@ fun appModule() = module {
 
     single<AuthRepository> { AuthRepositoryImpl(get(), get()) }
 
+    single<ReadingsRepository> { ReadingsRepositoryImpl(get(), get()) }
+
     factory { AuthScreenModel(get()) }
+
+    factory { OverviewScreenModel(get()) }
 }

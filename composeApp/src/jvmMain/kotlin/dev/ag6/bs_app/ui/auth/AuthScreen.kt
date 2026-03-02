@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.screen.auth
+package dev.ag6.bs_app.ui.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -9,6 +9,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
+import cafe.adriel.voyager.navigator.LocalNavigator
+import dev.ag6.bs_app.ui.overview.OverviewScreen
 
 class AuthScreen : Screen {
     @Composable
@@ -16,7 +18,9 @@ class AuthScreen : Screen {
         val screenModel = koinScreenModel<AuthScreenModel>()
         val state by screenModel.uiState.collectAsState()
 
-        Text(text = "Welcome back")
+        if (state.isAuthenticated) {
+            LocalNavigator.current?.push(OverviewScreen())
+        }
 
         AuthScreenContent(
             state = state,

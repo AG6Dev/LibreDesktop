@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.repository
+package dev.ag6.bs_app.repository.auth
 
 import com.russhwolf.settings.Settings
 import dev.ag6.bs_app.model.auth.AuthResponse
@@ -16,6 +16,7 @@ class AuthRepositoryImpl(
     companion object {
         private const val AUTH_ENDPOINT = "https://api.libreview.io/llu/auth/login"
         private const val TOKEN_KEY = "auth_token"
+        private const val USER_ID_KEY = "user_id"
         private const val EXPIRY_KEY = "auth_token_expiry"
     }
 
@@ -29,6 +30,10 @@ class AuthRepositoryImpl(
             val currentTime = System.currentTimeMillis() / 1000
             currentTime < expiry
         }
+    }
+
+    override suspend fun getUserId(): String? {
+        return settings.getStringOrNull("user_id")
     }
 
     override fun login(
@@ -54,6 +59,7 @@ class AuthRepositoryImpl(
             val authResponse: AuthResponse = response.body()
             if (authResponse is AuthResponse.Login) {
                 settings.putString(TOKEN_KEY, authResponse.data.authTicket.token)
+                settings.putString(USER_ID_KEY, authResponse.data.user.id)
                 settings.putLong(EXPIRY_KEY, authResponse.data.authTicket.expires)
             }
             emit(authResponse)
