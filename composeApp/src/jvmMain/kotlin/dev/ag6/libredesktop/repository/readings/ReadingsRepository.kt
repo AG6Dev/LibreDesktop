@@ -1,6 +1,6 @@
-package dev.ag6.bs_app.repository.readings
+package dev.ag6.libredesktop.repository.readings
 
-import dev.ag6.bs_app.model.reading.GlucoseReading
+import dev.ag6.libredesktop.model.reading.GlucoseReading
 
 interface ReadingsRepository {
     suspend fun getCurrentReading(): GlucoseReading?

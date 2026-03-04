@@ -1,7 +1,7 @@
-package dev.ag6.bs_app.model.reading
+package dev.ag6.libredesktop.model.reading
 
-import bs_app.composeapp.generated.resources.*
-import dev.ag6.bs_app.model.connection.GlucoseItem
+import libredesktop.composeapp.generated.resources.*
+import dev.ag6.libredesktop.model.connection.GlucoseItem
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.DrawableResource
 import java.time.LocalDateTime

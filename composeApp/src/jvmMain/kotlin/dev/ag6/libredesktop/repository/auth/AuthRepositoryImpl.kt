@@ -1,7 +1,7 @@
-package dev.ag6.bs_app.repository.auth
+package dev.ag6.libredesktop.repository.auth
 
 import com.russhwolf.settings.Settings
-import dev.ag6.bs_app.model.auth.AuthResponse
+import dev.ag6.libredesktop.model.auth.AuthResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*

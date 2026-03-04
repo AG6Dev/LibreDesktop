@@ -1,6 +1,6 @@
-package dev.ag6.bs_app.repository.auth
+package dev.ag6.libredesktop.repository.auth
 
-import dev.ag6.bs_app.model.auth.AuthResponse
+import dev.ag6.libredesktop.model.auth.AuthResponse
 import kotlinx.coroutines.flow.Flow
 
 interface AuthRepository {

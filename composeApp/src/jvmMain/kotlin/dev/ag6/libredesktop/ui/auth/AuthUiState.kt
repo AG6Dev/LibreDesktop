@@ -1,6 +1,6 @@
-package dev.ag6.bs_app.ui.auth
+package dev.ag6.libredesktop.ui.auth
 
-import dev.ag6.bs_app.model.auth.AuthResponse
+import dev.ag6.libredesktop.model.auth.AuthResponse
 
 data class AuthUiState(
     val email: String = "",

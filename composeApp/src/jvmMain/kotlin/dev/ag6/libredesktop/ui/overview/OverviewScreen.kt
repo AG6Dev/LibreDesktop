@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.ui.overview
+package dev.ag6.libredesktop.ui.overview
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -21,8 +21,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
-import dev.ag6.bs_app.model.reading.GlucoseReading
-import dev.ag6.bs_app.model.reading.TrendArrow
+import dev.ag6.libredesktop.model.reading.GlucoseReading
+import dev.ag6.libredesktop.model.reading.TrendArrow
 import org.jetbrains.compose.resources.painterResource
 import java.text.SimpleDateFormat
 import java.util.*

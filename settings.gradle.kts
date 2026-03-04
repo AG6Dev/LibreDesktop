@@ -1,4 +1,4 @@
-rootProject.name = "bs_app"
+rootProject.name = "LibreDesktop"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

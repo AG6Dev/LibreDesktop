@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.ui.auth
+package dev.ag6.libredesktop.ui.auth
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
-import dev.ag6.bs_app.ui.overview.OverviewScreen
+import dev.ag6.libredesktop.ui.overview.OverviewScreen
 
 class AuthScreen : Screen {
     @Composable

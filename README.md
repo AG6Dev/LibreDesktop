@@ -1,6 +1,8 @@
-# bs_app
+# LibreDesktop
 
-Desktop app (Kotlin + Compose Multiplatform) for viewing LibreView glucose data.
+A simple desktop app (Kotlin + Compose Multiplatform) for viewing LibreView glucose data.
+
+Only supported and tested on Windows currently.
 
 ## What it does
 

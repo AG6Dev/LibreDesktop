@@ -1,9 +1,9 @@
-package dev.ag6.bs_app.ui.overview
+package dev.ag6.libredesktop.ui.overview
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import dev.ag6.bs_app.repository.readings.ReadingsRepository
-import dev.ag6.bs_app.util.scheduleRepeatingTask
+import dev.ag6.libredesktop.repository.readings.ReadingsRepository
+import dev.ag6.libredesktop.util.scheduleRepeatingTask
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -22,7 +22,7 @@ class OverviewScreenModel(repository: ReadingsRepository) : ScreenModel {
                 val currentReading = repository.getCurrentReading()
                 val graphData = repository.getGraphReadings()
                 _uiState.update { it.copy(isLoading = false, currentReading = currentReading, graphData = graphData) }
-                println("Fetching current reading: $currentReading")
+                println("Fetched current reading: $currentReading")
             }
         }
     }

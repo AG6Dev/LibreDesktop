@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.util
+package dev.ag6.libredesktop.util
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

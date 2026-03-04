@@ -1,9 +1,9 @@
-package dev.ag6.bs_app.ui.auth
+package dev.ag6.libredesktop.ui.auth
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import dev.ag6.bs_app.model.auth.AuthResponse
-import dev.ag6.bs_app.repository.auth.AuthRepository
+import dev.ag6.libredesktop.model.auth.AuthResponse
+import dev.ag6.libredesktop.repository.auth.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

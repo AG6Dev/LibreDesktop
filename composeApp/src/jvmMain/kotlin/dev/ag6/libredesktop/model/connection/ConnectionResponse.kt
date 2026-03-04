@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.model.connection
+package dev.ag6.libredesktop.model.connection
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerialName

@@ -1,6 +1,6 @@
-package dev.ag6.bs_app.ui.overview
+package dev.ag6.libredesktop.ui.overview
 
-import dev.ag6.bs_app.model.reading.GlucoseReading
+import dev.ag6.libredesktop.model.reading.GlucoseReading
 
 data class OverviewUiState(
     val isLoading: Boolean = false,

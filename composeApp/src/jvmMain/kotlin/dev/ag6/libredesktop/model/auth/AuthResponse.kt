@@ -1,4 +1,4 @@
-package dev.ag6.bs_app.model.auth
+package dev.ag6.libredesktop.model.auth
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerialName

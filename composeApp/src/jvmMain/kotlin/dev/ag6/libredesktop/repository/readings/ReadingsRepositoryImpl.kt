@@ -1,17 +1,16 @@
-package dev.ag6.bs_app.repository.readings
+package dev.ag6.libredesktop.repository.readings
 
 import com.russhwolf.settings.Settings
-import dev.ag6.bs_app.model.connection.ConnectionResponse
-import dev.ag6.bs_app.model.connection.GraphResponse
-import dev.ag6.bs_app.model.reading.GlucoseReading
-import dev.ag6.bs_app.model.reading.mapToGlucoseReading
-import dev.ag6.bs_app.repository.auth.AuthRepository
+import dev.ag6.libredesktop.model.connection.ConnectionResponse
+import dev.ag6.libredesktop.model.connection.GraphResponse
+import dev.ag6.libredesktop.model.reading.GlucoseReading
+import dev.ag6.libredesktop.model.reading.mapToGlucoseReading
+import dev.ag6.libredesktop.repository.auth.AuthRepository
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import java.security.MessageDigest
-import kotlin.collections.emptyList
 
 class ReadingsRepositoryImpl(
     val httpClient: HttpClient,
@@ -24,32 +23,16 @@ class ReadingsRepositoryImpl(
     }
 
     override suspend fun getCurrentReading(): GlucoseReading? {
-        val userId = authRepository.getUserId() ?: return null
-        val token = authRepository.getAuthToken() ?: return null
+        val response = makeGetRequest<ConnectionResponse>(CONNECTIONS_URL) ?: return null
 
-        val userHash = MessageDigest.getInstance("SHA-256")
-            .digest(userId.toByteArray())
-            .joinToString("") { "%02x".format(it) }
-
-        val response = httpClient.get(CONNECTIONS_URL) {
-            contentType(ContentType.Application.Json)
-            bearerAuth(token)
-            headers {
-                append("product", "llu.android")
-                append("version", "4.16.0")
-                append("Account-Id", userHash)
-            }
-        }
-        val currentReading = when (val connection = response.body<ConnectionResponse>()) {
+        return when (response) {
             is ConnectionResponse.Success -> {
-                settings.putString(PATIENT_ID_KEY, connection.data.first().patientId)
-                connection.data.first().glucoseItem.mapToGlucoseReading()
+                settings.putString(PATIENT_ID_KEY, response.data.first().patientId)
+                response.data.first().glucoseItem.mapToGlucoseReading()
             }
+
             is ConnectionResponse.Error -> null
         }
-
-
-        return currentReading
     }
 
     override suspend fun getGraphReadings(): List<GlucoseReading> {
@@ -78,7 +61,7 @@ class ReadingsRepositoryImpl(
             }
         }
 
-        return if(response.status.isSuccess()) {
+        return if (response.status.isSuccess()) {
             response.body()
         } else {
             null

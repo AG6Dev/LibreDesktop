@@ -54,11 +54,11 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "dev.ag6.bs_app.MainKt"
+        mainClass = "dev.ag6.libredesktop.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Msi)
-            packageName = "dev.ag6.bs_app"
+            packageName = "LibreDesktop"
             packageVersion = "1.0.0"
         }
     }

@@ -1,16 +1,17 @@
-package dev.ag6.bs_app
+package dev.ag6.libredesktop
 
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
-import dev.ag6.bs_app.di.initKoin
+import dev.ag6.libredesktop.di.initKoin
 
 fun main() = application {
     initKoin()
 
     Window(
         onCloseRequest = ::exitApplication,
-        title = "bs_app",
+        title = "LibreDesktop",
     ) {
         App()
     }
 }
+
