@@ -28,13 +28,14 @@ class LibreApiResponseSerializerTest {
     @Test
     fun decodesRedirectEnvelope() {
         val response = decodeLibreApiResponse(
-            """{"status":307,"redirect":true,"region":"eu"}""",
+            """{"status":0,"data":{"redirect":true,"region":"eu"}}""",
             Int.serializer(),
             json
         )
 
         val redirect = assertIs<LibreApiResponse.Redirect>(response)
-        assertEquals(307, redirect.status)
+        assertEquals(0, redirect.status)
+        assertEquals(true, redirect.redirect)
         assertEquals("eu", redirect.region)
     }
 

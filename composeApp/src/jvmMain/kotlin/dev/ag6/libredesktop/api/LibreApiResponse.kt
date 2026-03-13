@@ -5,6 +5,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlin.reflect.KClass
 
@@ -13,9 +14,10 @@ class LibreApiResponseSerializer<S>(
 ) : JsonContentPolymorphicSerializer<LibreApiResponse<S>>(responseClass()) {
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<LibreApiResponse<S>> {
         val json = element.jsonObject
+        val data = json["data"] as? JsonObject
         return when {
+            data?.containsKey("redirect") == true -> LibreApiResponse.Redirect.serializer()
             json.containsKey("data") -> LibreApiResponse.Success.serializer(dataSerializer)
-            json.containsKey("redirect") -> LibreApiResponse.Redirect.serializer()
             json.containsKey("message") || json.containsKey("error") -> LibreApiResponse.Error.serializer()
             else -> throw IllegalStateException("Unknown LibreApiResponse shape: ${json.keys}")
         }
@@ -40,6 +42,11 @@ sealed class LibreApiResponse<out S> {
     }
 
     @Serializable
-    data class Redirect(val status: Int? = null, val redirect: Boolean = true, val region: String) :
-        LibreApiResponse<Nothing>()
+    data class Redirect(val status: Int? = null, val data: RedirectData) : LibreApiResponse<Nothing>() {
+        val redirect: Boolean get() = data.redirect
+        val region: String get() = data.region
+
+        @Serializable
+        data class RedirectData(val redirect: Boolean = true, val region: String)
+    }
 }

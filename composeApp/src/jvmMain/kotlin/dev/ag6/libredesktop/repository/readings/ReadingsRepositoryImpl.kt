@@ -1,8 +1,7 @@
 package dev.ag6.libredesktop.repository.readings
 
 import com.russhwolf.settings.Settings
-import dev.ag6.libredesktop.api.LibreApiResponse
-import dev.ag6.libredesktop.api.decodeLibreApiResponse
+import dev.ag6.libredesktop.api.*
 import dev.ag6.libredesktop.model.connection.ConnectionData
 import dev.ag6.libredesktop.model.connection.GraphConnectionData
 import dev.ag6.libredesktop.model.reading.GlucoseReading
@@ -24,12 +23,15 @@ class ReadingsRepositoryImpl(
     val json: Json
 ) : ReadingsRepository {
     companion object {
-        private const val CONNECTIONS_URL = "https://api.libreview.io/llu/connections"
+        private const val CONNECTIONS_PATH = "llu/connections"
         private const val PATIENT_ID_KEY = "patient_id"
     }
 
     override suspend fun getCurrentReading(): GlucoseReading? {
-        val response = makeGetRequest(CONNECTIONS_URL, ListSerializer(ConnectionData.serializer())) ?: return null
+        val response = makeGetRequest(
+            CONNECTIONS_PATH,
+            ListSerializer(ConnectionData.serializer())
+        ) ?: return null
 
         return when (response) {
             is LibreApiResponse.Success -> {
@@ -45,7 +47,7 @@ class ReadingsRepositoryImpl(
     override suspend fun getGraphReadings(): List<GlucoseReading> {
         val pid = getPatientId() ?: return emptyList()
         val response = makeGetRequest(
-            "$CONNECTIONS_URL/$pid/graph",
+            "$CONNECTIONS_PATH/$pid/graph",
             GraphConnectionData.serializer()
         ) ?: return emptyList()
 
@@ -57,7 +59,7 @@ class ReadingsRepositoryImpl(
     }
 
     private suspend fun <T> makeGetRequest(
-        url: String,
+        path: String,
         dataSerializer: KSerializer<T>
     ): LibreApiResponse<T>? {
         val userId: String = authRepository.getUserId() ?: return null
@@ -67,7 +69,8 @@ class ReadingsRepositoryImpl(
             .digest(userId.toByteArray())
             .joinToString("") { "%02x".format(it) }
 
-        val response = httpClient.get(url) {
+        val currentRegion = settings.getLibreApiRegion()
+        val response = httpClient.get(buildLibreApiUrl(currentRegion, path)) {
             contentType(ContentType.Application.Json)
             bearerAuth(token)
             headers {
@@ -78,10 +81,31 @@ class ReadingsRepositoryImpl(
             }
         }
 
-        return if (response.status.isSuccess()) {
-            decodeLibreApiResponse(response.bodyAsText(), dataSerializer, json)
+        if (!response.status.isSuccess()) {
+            return null
+        }
+
+        val decodedResponse = decodeLibreApiResponse(response.bodyAsText(), dataSerializer, json)
+        return if (decodedResponse is LibreApiResponse.Redirect) {
+            settings.setLibreApiRegion(decodedResponse.region)
+            val redirectedResponse = httpClient.get(buildLibreApiUrl(decodedResponse.region, path)) {
+                contentType(ContentType.Application.Json)
+                bearerAuth(token)
+                headers {
+                    append("Accept-Encoding", "gzip")
+                    append("product", "llu.android")
+                    append("version", "4.16.0")
+                    append("Account-Id", userHash)
+                }
+            }
+
+            if (redirectedResponse.status.isSuccess()) {
+                decodeLibreApiResponse(redirectedResponse.bodyAsText(), dataSerializer, json)
+            } else {
+                null
+            }
         } else {
-            null
+            decodedResponse
         }
     }
 

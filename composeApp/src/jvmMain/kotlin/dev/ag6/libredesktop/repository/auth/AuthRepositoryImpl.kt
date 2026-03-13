@@ -1,8 +1,7 @@
 package dev.ag6.libredesktop.repository.auth
 
 import com.russhwolf.settings.Settings
-import dev.ag6.libredesktop.api.LibreApiResponse
-import dev.ag6.libredesktop.api.decodeLibreApiResponse
+import dev.ag6.libredesktop.api.*
 import dev.ag6.libredesktop.model.auth.AuthLoginData
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -18,7 +17,7 @@ class AuthRepositoryImpl(
     private val json: Json
 ) : AuthRepository {
     companion object {
-        private const val AUTH_ENDPOINT = "https://api.libreview.io/llu/auth/login"
+        private const val AUTH_PATH = "llu/auth/login"
 
         private const val TOKEN_KEY = "auth_token"
         private const val USER_ID_KEY = "user_id"
@@ -46,7 +45,38 @@ class AuthRepositoryImpl(
         password: String,
         countryCode: String
     ): Flow<LibreApiResponse<AuthLoginData>> = flow {
-        val response = httpClient.post(AUTH_ENDPOINT) {
+        val authResponse = loginAgainstRegion(
+            username = username,
+            password = password,
+            region = settings.getLibreApiRegion() ?: countryCode.ifBlank { null }
+        )
+
+        val resolvedResponse = if (authResponse is LibreApiResponse.Redirect) {
+            settings.setLibreApiRegion(authResponse.region)
+            loginAgainstRegion(
+                username = username,
+                password = password,
+                region = authResponse.region
+            )
+        } else {
+            authResponse
+        }
+
+        if (resolvedResponse is LibreApiResponse.Success) {
+            settings.putString(TOKEN_KEY, resolvedResponse.data.authTicket.token)
+            settings.putString(USER_ID_KEY, resolvedResponse.data.user.id)
+            settings.putLong(EXPIRY_KEY, resolvedResponse.data.authTicket.expires)
+        }
+
+        emit(resolvedResponse)
+    }
+
+    private suspend fun loginAgainstRegion(
+        username: String,
+        password: String,
+        region: String?
+    ): LibreApiResponse<AuthLoginData> {
+        val response = httpClient.post(buildLibreApiUrl(region, AUTH_PATH)) {
             contentType(ContentType.Application.Json)
             headers {
                 append("product", "llu.android")
@@ -66,12 +96,10 @@ class AuthRepositoryImpl(
             json
         )
 
-        if (response.status == HttpStatusCode.OK && authResponse is LibreApiResponse.Success) {
-            settings.putString(TOKEN_KEY, authResponse.data.authTicket.token)
-            settings.putString(USER_ID_KEY, authResponse.data.user.id)
-            settings.putLong(EXPIRY_KEY, authResponse.data.authTicket.expires)
+        if (authResponse is LibreApiResponse.Success && !region.isNullOrBlank()) {
+            settings.setLibreApiRegion(region)
         }
 
-        emit(authResponse)
+        return authResponse
     }
 }

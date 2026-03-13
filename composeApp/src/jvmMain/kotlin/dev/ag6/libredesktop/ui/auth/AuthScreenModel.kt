@@ -43,7 +43,7 @@ class AuthScreenModel(
                                 isLoading = false,
                                 isAuthenticated = false,
                                 data = result,
-                                error = "LibreView requested a region redirect to ${result.region}."
+                                error = "LibreView redirected login to ${result.region}, but the regional retry did not succeed."
                             )
                         }
                     }
