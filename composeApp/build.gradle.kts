@@ -28,6 +28,7 @@ kotlin {
             implementation(libs.koin.compose.viewmodel)
 
             implementation(libs.multiplatform.settings.no.arg)
+            implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
 
             implementation(libs.voyager.navigator)

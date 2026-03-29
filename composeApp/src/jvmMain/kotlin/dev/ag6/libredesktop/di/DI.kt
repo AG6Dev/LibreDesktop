@@ -1,8 +1,8 @@
 package dev.ag6.libredesktop.di
 
 import com.github.javakeyring.Keyring
+import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.PreferencesSettings
-import com.russhwolf.settings.Settings
 import dev.ag6.libredesktop.repository.auth.AuthRepository
 import dev.ag6.libredesktop.repository.auth.AuthRepositoryImpl
 import dev.ag6.libredesktop.repository.readings.ReadingsRepository
@@ -46,7 +46,7 @@ fun appModule() = module {
         }
     }
 
-    single<Settings> { PreferencesSettings(Preferences.userRoot().node("dev/ag6/libredesktop")) }
+    single<ObservableSettings> { PreferencesSettings(Preferences.userRoot().node("dev/ag6/libredesktop")) }
 
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get(), get()) }
     single<ReadingsRepository> { ReadingsRepositoryImpl(get(), get(), get(), get()) }

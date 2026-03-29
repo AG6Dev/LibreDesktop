@@ -27,8 +27,29 @@ class SettingsScreenModel(
             settingsRepository.getReadingUnits().collect { readingUnit ->
                 _uiState.update {
                     it.copy(
-                        isLoading = false,
                         readingUnit = readingUnit
+                    )
+                }
+            }
+        }
+
+        screenModelScope.launch {
+            settingsRepository.getHighTarget().collect { highTargetMgDl ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        highTargetMgDl = highTargetMgDl
+                    )
+                }
+            }
+        }
+
+        screenModelScope.launch {
+            settingsRepository.getLowTarget().collect { lowTargetMgDl ->
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        lowTargetMgDl = lowTargetMgDl
                     )
                 }
             }
@@ -36,9 +57,24 @@ class SettingsScreenModel(
     }
 
     fun onReadingUnitSelected(readingUnit: ReadingUnit) {
-        settingsRepository.setReadingUnits(readingUnit)
-        _uiState.update {
-            it.copy(readingUnit = readingUnit)
+        screenModelScope.launch {
+            settingsRepository.setReadingUnits(readingUnit)
+            _uiState.update {
+                it.copy(readingUnit = readingUnit)
+            }
+        }
+    }
+
+    fun onTargetsSaved(lowTargetMgDl: Int, highTargetMgDl: Int) {
+        screenModelScope.launch {
+            settingsRepository.setLowTarget(lowTargetMgDl)
+            settingsRepository.setHighTarget(highTargetMgDl)
+            _uiState.update {
+                it.copy(
+                    lowTargetMgDl = lowTargetMgDl,
+                    highTargetMgDl = highTargetMgDl
+                )
+            }
         }
     }
 

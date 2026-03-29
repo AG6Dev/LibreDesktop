@@ -28,6 +28,18 @@ class OverviewScreenModel(
         }
 
         screenModelScope.launch {
+            settingsRepository.getHighTarget().collect { highTargetMgDl ->
+                _uiState.update { it.copy(highTargetMgDl = highTargetMgDl) }
+            }
+        }
+
+        screenModelScope.launch {
+            settingsRepository.getLowTarget().collect { lowTargetMgDl ->
+                _uiState.update { it.copy(lowTargetMgDl = lowTargetMgDl) }
+            }
+        }
+
+        screenModelScope.launch {
             scheduleRepeatingTask(1.minutes) {
                 val currentReading = repository.getCurrentReading()
                 val graphData = repository.getGraphReadings()

@@ -1,7 +1,7 @@
 package dev.ag6.libredesktop.repository.auth
 
 import com.github.javakeyring.Keyring
-import com.russhwolf.settings.Settings
+import com.russhwolf.settings.ObservableSettings
 import dev.ag6.libredesktop.api.LibreApiCallResult
 import dev.ag6.libredesktop.api.buildLibreApiUrl
 import dev.ag6.libredesktop.api.executeLibreApiRequest
@@ -14,7 +14,7 @@ import kotlinx.serialization.json.Json
 
 class AuthRepositoryImpl(
     private val httpClient: HttpClient,
-    private val settings: Settings,
+    private val settings: ObservableSettings,
     private val keyring: Keyring,
     private val json: Json
 ) : AuthRepository {

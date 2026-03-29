@@ -1,6 +1,6 @@
 package dev.ag6.libredesktop.repository.readings
 
-import com.russhwolf.settings.Settings
+import com.russhwolf.settings.ObservableSettings
 import dev.ag6.libredesktop.api.LibreApiCallResult
 import dev.ag6.libredesktop.api.buildLibreApiUrl
 import dev.ag6.libredesktop.api.executeLibreApiRequest
@@ -21,7 +21,7 @@ import java.security.MessageDigest
 class ReadingsRepositoryImpl(
     val httpClient: HttpClient,
     val authRepository: AuthRepository,
-    val settings: Settings,
+    val settings: ObservableSettings,
     val json: Json
 ) : ReadingsRepository {
     companion object {

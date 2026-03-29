@@ -42,6 +42,8 @@ class OverviewScreen : Screen {
             currentReading = state.currentReading,
             pastReadings = state.graphData,
             readingUnit = state.readingUnit,
+            lowTargetMgDl = state.lowTargetMgDl,
+            highTargetMgDl = state.highTargetMgDl,
             onOpenSettings = { navigator?.push(SettingsScreen()) }
         )
     }
@@ -53,6 +55,8 @@ private fun OverviewScreenContent(
     currentReading: GlucoseReading? = null,
     pastReadings: List<GlucoseReading> = listOf(),
     readingUnit: ReadingUnit,
+    lowTargetMgDl: Int,
+    highTargetMgDl: Int,
     onOpenSettings: () -> Unit
 ) {
     if (isLoading && currentReading == null) {
@@ -81,6 +85,8 @@ private fun OverviewScreenContent(
                     readings = pastReadings,
                     currentReading = currentReading,
                     readingUnit = readingUnit,
+                    lowTargetMgDl = lowTargetMgDl,
+                    highTargetMgDl = highTargetMgDl,
                     modifier = Modifier.fillMaxWidth().height(250.dp)
                 )
             }
@@ -94,6 +100,8 @@ fun GlucoseGraph(
     readings: List<GlucoseReading>,
     currentReading: GlucoseReading? = null,
     readingUnit: ReadingUnit,
+    lowTargetMgDl: Int,
+    highTargetMgDl: Int,
     modifier: Modifier = Modifier
 ) {
     val theme = MaterialTheme.colorScheme
@@ -101,8 +109,8 @@ fun GlucoseGraph(
     var hoveredIndex by remember { mutableStateOf<Int?>(null) }
     val baseMinGlucose = 40f
     val baseMaxGlucose = 300f
-    val targetMin = 70f
-    val targetMax = 180f
+    val targetMin = lowTargetMgDl.toFloat()
+    val targetMax = highTargetMgDl.toFloat()
     val displayedReadings = remember(readings, currentReading) {
         buildList {
             addAll(readings)
@@ -157,7 +165,6 @@ fun GlucoseGraph(
                 val width = size.width
                 val height = size.height
 
-                // Draw target range background (70-180 mg/dL)
                 val targetMinY = height - ((targetMin - minGlucose) / range * height)
                 val targetMaxY = height - ((targetMax - minGlucose) / range * height)
 

@@ -4,6 +4,12 @@ import dev.ag6.libredesktop.model.reading.ReadingUnit
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
-    fun setReadingUnits(units: ReadingUnit)
+    suspend fun setReadingUnits(units: ReadingUnit)
     fun getReadingUnits(): Flow<ReadingUnit>
+
+    suspend fun setHighTarget(valueMgDl: Int)
+    fun getHighTarget(): Flow<Int>
+
+    suspend fun setLowTarget(valueMgDl: Int)
+    fun getLowTarget(): Flow<Int>
 }
