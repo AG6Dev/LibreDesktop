@@ -12,6 +12,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -20,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
-import dev.ag6.libredesktop.ui.overview.OverviewScreen
+import dev.ag6.libredesktop.ui.main.MainScreen
 
 class AuthScreen : Screen {
     @Composable
@@ -31,7 +34,7 @@ class AuthScreen : Screen {
 
         if (state.isAuthenticated) {
             LaunchedEffect(Unit) {
-                navigator?.replaceAll(OverviewScreen())
+                navigator?.replaceAll(MainScreen())
             }
         }
 
@@ -51,17 +54,20 @@ private fun AuthScreenContent(
     var passwordVisible by remember { mutableStateOf(false) }
 
     Surface {
-        Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxSize().onKeyEvent { event ->
+                if (event.key != Key.Enter) return@onKeyEvent false
+                onLoginClick(email, password)
+                return@onKeyEvent true
+            }, verticalAlignment = Alignment.CenterVertically
+        ) {
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
+                modifier = Modifier.weight(1f).fillMaxHeight()
                     .clip(MaterialTheme.shapes.large.copy(topStart = CornerSize(0.dp), bottomStart = CornerSize(0.dp)))
                     .background(
                         brush = Brush.linearGradient(
                             listOf(
-                                MaterialTheme.colorScheme.primary,
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                                MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                             )
                         )
                     ),

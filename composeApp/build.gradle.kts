@@ -34,6 +34,7 @@ kotlin {
             implementation(libs.multiplatform.settings.serialization)
 
             implementation(libs.voyager.navigator)
+            implementation(libs.voyager.tab.navigator)
             implementation(libs.voyager.screenModel)
             implementation(libs.voyager.koin)
 
@@ -44,6 +45,9 @@ kotlin {
             implementation(libs.ktor.content.encoding)
 
             implementation(libs.java.keyring)
+
+            implementation(libs.vico.compose)
+            implementation(libs.vico.compose.m3)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

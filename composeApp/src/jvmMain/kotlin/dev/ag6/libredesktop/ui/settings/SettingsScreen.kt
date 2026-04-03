@@ -2,14 +2,18 @@ package dev.ag6.libredesktop.ui.settings
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
+import cafe.adriel.voyager.navigator.tab.Tab
+import cafe.adriel.voyager.navigator.tab.TabOptions
 import dev.ag6.libredesktop.model.reading.ReadingUnit
 import dev.ag6.libredesktop.model.theme.ThemeMode
 import dev.ag6.libredesktop.ui.auth.AuthScreen
@@ -18,7 +22,7 @@ import dev.ag6.libredesktop.ui.components.PreferenceRow
 import dev.ag6.libredesktop.ui.components.ScreenHeader
 import dev.ag6.libredesktop.ui.components.SectionCard
 
-class SettingsScreen : Screen {
+object SettingsScreen : Tab {
     @Composable
     override fun Content() {
         val screenModel = koinScreenModel<SettingsScreenModel>()
@@ -27,23 +31,30 @@ class SettingsScreen : Screen {
 
         SettingsScreenContent(
             state = state,
-            onBack = { navigator?.pop() },
             onThemeModeSelected = screenModel::onThemeModeSelected,
             onReadingUnitSelected = screenModel::onReadingUnitSelected,
             onTargetsSaved = screenModel::onTargetsSaved,
             onLogout = {
                 screenModel.onLogout {
-                    navigator?.replaceAll(AuthScreen())
+                    navigator?.parent?.replaceAll(AuthScreen())
                 }
             }
         )
     }
+
+    override val options: TabOptions
+        @Composable
+        get() {
+            val icon = rememberVectorPainter(Icons.Default.Settings)
+            return remember {
+                TabOptions(1u, "Settings", icon)
+            }
+        }
 }
 
 @Composable
 private fun SettingsScreenContent(
     state: SettingsUiState,
-    onBack: () -> Unit,
     onThemeModeSelected: (ThemeMode) -> Unit,
     onReadingUnitSelected: (ReadingUnit) -> Unit,
     onTargetsSaved: (Int, Int) -> Unit,
@@ -63,12 +74,7 @@ private fun SettingsScreenContent(
         ScreenHeader(
             eyebrow = "Preferences",
             title = "Settings",
-            subtitle = "Control appearance, units, target ranges, and account actions.",
-            trailing = {
-                OutlinedButton(onClick = onBack) {
-                    Text("Back")
-                }
-            }
+            subtitle = "Control appearance, units, target ranges, and account actions."
         )
 
         SectionCard(
