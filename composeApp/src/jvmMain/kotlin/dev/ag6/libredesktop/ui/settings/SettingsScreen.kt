@@ -1,13 +1,18 @@
 package dev.ag6.libredesktop.ui.settings
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.koin.koinScreenModel
@@ -17,7 +22,6 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import dev.ag6.libredesktop.model.reading.ReadingUnit
 import dev.ag6.libredesktop.model.theme.ThemeMode
 import dev.ag6.libredesktop.ui.auth.AuthScreen
-import dev.ag6.libredesktop.ui.components.AppScreen
 import dev.ag6.libredesktop.ui.components.PreferenceRow
 import dev.ag6.libredesktop.ui.components.ScreenHeader
 import dev.ag6.libredesktop.ui.components.SectionCard
@@ -38,13 +42,11 @@ object SettingsScreen : Tab {
                 screenModel.onLogout {
                     navigator?.parent?.replaceAll(AuthScreen())
                 }
-            }
-        )
+            })
     }
 
     override val options: TabOptions
-        @Composable
-        get() {
+        @Composable get() {
             val icon = rememberVectorPainter(Icons.Default.Settings)
             return remember {
                 TabOptions(3u, "Settings", icon)
@@ -70,130 +72,154 @@ private fun SettingsScreenContent(
         targetError = null
     }
 
-    AppScreen(scrollable = true) {
-        ScreenHeader(
-            eyebrow = "Preferences",
-            title = "Settings",
-            subtitle = "Control appearance, units, target ranges, and account actions."
-        )
-
-        SectionCard(
-            title = "Appearance",
-            subtitle = "Choose how the app should render across desktop sessions."
+    Surface {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(24.dp)
         ) {
-            PreferenceRow(
-                title = "Theme mode",
-                subtitle = "System follows your OS preference when available."
-            ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    ThemeMode.entries.forEach { mode ->
-                        FilterChip(
-                            selected = state.themeMode == mode,
-                            onClick = { onThemeModeSelected(mode) },
-                            label = { Text(mode.label) }
-                        )
+            item {
+                ScreenHeader(
+                    eyebrow = "Preferences",
+                    title = "Settings",
+                    subtitle = "Control appearance, units, target ranges, and account actions."
+                )
+            }
+
+            item {
+                SectionCard(
+                    title = "Appearance", subtitle = "Choose how the app should render across desktop sessions."
+                ) {
+                    PreferenceRow(
+                        title = "Theme mode", subtitle = "System follows your OS preference when available."
+                    ) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            ThemeMode.entries.forEach { mode ->
+                                FilterChip(
+                                    selected = state.themeMode == mode,
+                                    onClick = { onThemeModeSelected(mode) },
+                                    label = { Text(mode.label) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                        selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
-        }
 
-        SectionCard(
-            title = "Glucose units",
-            subtitle = "Switch between mmol/L and mg/dL for readings and targets."
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                ReadingUnit.entries.forEach { unit ->
-                    ReadingUnitRow(
-                        unit = unit,
-                        selected = state.readingUnit == unit,
-                        onSelected = { onReadingUnitSelected(unit) }
-                    )
-                }
-            }
-        }
-
-        SectionCard(
-            title = "Target range",
-            subtitle = "These values drive the shaded target band in the trend chart."
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                OutlinedTextField(
-                    value = lowTargetInput,
-                    onValueChange = {
-                        lowTargetInput = it
-                        targetError = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    label = { Text("Low target") },
-                    suffix = { Text(state.readingUnit.label) }
-                )
-                OutlinedTextField(
-                    value = highTargetInput,
-                    onValueChange = {
-                        highTargetInput = it
-                        targetError = null
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    label = { Text("High target") },
-                    suffix = { Text(state.readingUnit.label) }
-                )
-                targetError?.let {
-                    Text(
-                        text = it,
-                        color = MaterialTheme.colorScheme.error,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                }
-                Button(
-                    onClick = {
-                        val lowTargetMgDl = state.readingUnit.parseDisplayValue(lowTargetInput)
-                        val highTargetMgDl = state.readingUnit.parseDisplayValue(highTargetInput)
-                        if (lowTargetMgDl == null || highTargetMgDl == null) {
-                            targetError = "Enter valid low and high target values."
-                        } else {
-                            val validationError = when {
-                                lowTargetMgDl < 40 || highTargetMgDl > 400 -> {
-                                    "Targets must stay within 40 to 400 mg/dL."
-                                }
-
-                                lowTargetMgDl >= highTargetMgDl -> {
-                                    "Low target must be below high target."
-                                }
-
-                                else -> null
-                            }
-
-                            targetError = validationError
-
-                            if (validationError == null) {
-                                onTargetsSaved(lowTargetMgDl, highTargetMgDl)
-                            }
+            item {
+                SectionCard(
+                    title = "Glucose units", subtitle = "Switch between mmol/L and mg/dL for readings and targets."
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        ReadingUnit.entries.forEach { unit ->
+                            ReadingUnitRow(
+                                unit = unit,
+                                selected = state.readingUnit == unit,
+                                onSelected = { onReadingUnitSelected(unit) })
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                    }
+                }
+
+            }
+
+            item {
+
+                SectionCard(
+                    title = "Target range", subtitle = "These values drive the shaded target band in the trend chart."
                 ) {
-                    Text("Save target range")
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        OutlinedTextField(
+                            value = lowTargetInput,
+                            onValueChange = {
+                                lowTargetInput = it
+                                targetError = null
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text("Low target") },
+                            suffix = { Text(state.readingUnit.label) })
+                        OutlinedTextField(
+                            value = highTargetInput,
+                            onValueChange = {
+                                highTargetInput = it
+                                targetError = null
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text("High target") },
+                            suffix = { Text(state.readingUnit.label) })
+                        targetError?.let {
+                            Text(
+                                text = it,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        Button(
+                            onClick = {
+                                val lowTargetMgDl = state.readingUnit.parseDisplayValue(lowTargetInput)
+                                val highTargetMgDl = state.readingUnit.parseDisplayValue(highTargetInput)
+                                if (lowTargetMgDl == null || highTargetMgDl == null) {
+                                    targetError = "Enter valid low and high target values."
+                                } else {
+                                    val validationError = when {
+                                        lowTargetMgDl < 40 || highTargetMgDl > 400 -> {
+                                            "Targets must stay within 40 to 400 mg/dL."
+                                        }
+
+                                        lowTargetMgDl >= highTargetMgDl -> {
+                                            "Low target must be below high target."
+                                        }
+
+                                        else -> null
+                                    }
+
+                                    targetError = validationError
+
+                                    if (validationError == null) {
+                                        onTargetsSaved(lowTargetMgDl, highTargetMgDl)
+                                    }
+                                }
+                            }, modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Save target range")
+                        }
+                    }
                 }
             }
-        }
 
-        SectionCard(
-            title = "Account",
-            subtitle = "Session and identity controls for this device."
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    text = state.email ?: "Email unavailable",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-                HorizontalDivider()
-                OutlinedButton(
-                    onClick = onLogout,
-                    modifier = Modifier.fillMaxWidth()
+            item {
+
+                SectionCard(
+                    title = "Account", subtitle = "Session and identity controls for this device."
                 ) {
-                    Text("Log out")
+                    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                        val emailInteraction = remember { MutableInteractionSource() }
+                        val emailHovered by emailInteraction.collectIsHoveredAsState()
+                        val email = state.email ?: "Email unavailable"
+                        Row(modifier = Modifier.hoverable(emailInteraction)) {
+                            Text(
+                                text = email.take(3),
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                            Text(
+                                text = email.drop(3),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.blur(if (emailHovered) 0.dp else 12.dp)
+                            )
+                        }
+                        HorizontalDivider()
+                        OutlinedButton(
+                            onClick = onLogout, modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Log out")
+                        }
+                    }
                 }
             }
         }
@@ -202,24 +228,17 @@ private fun SettingsScreenContent(
 
 @Composable
 private fun ReadingUnitRow(
-    unit: ReadingUnit,
-    selected: Boolean,
-    onSelected: () -> Unit
+    unit: ReadingUnit, selected: Boolean, onSelected: () -> Unit
 ) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onSelected)
-            .padding(vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth().clickable(onClick = onSelected).padding(vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         RadioButton(
-            selected = selected,
-            onClick = onSelected
+            selected = selected, onClick = onSelected
         )
         Text(
-            text = unit.label,
-            style = MaterialTheme.typography.bodyLarge
+            text = unit.label, style = MaterialTheme.typography.bodyLarge
         )
     }
 }
