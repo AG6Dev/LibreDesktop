@@ -85,8 +85,15 @@ private fun OverviewScreenContent(
                 ReadingUnit.MGDL -> highTargetMgDl.toDouble()
             }
         }
-        val chartModel = remember(pastReadings, readingUnit) {
-            pastReadings
+
+        val chartModel = remember(pastReadings, currentReading, readingUnit) {
+            val readings =
+                if (currentReading != null && pastReadings.none { it.timestamp == currentReading.timestamp }) {
+                    (pastReadings + currentReading).sortedBy { it.timestamp }
+                } else {
+                    pastReadings
+                }
+            readings
                 .takeIf { it.isNotEmpty() }
                 ?.let { readings ->
                     CartesianChartModel(
@@ -132,11 +139,11 @@ private fun OverviewScreenContent(
                                 Text(text = currentReading?.let { readingUnit.format(it.valueInMgPerDl) } ?: "--",
                                     style = MaterialTheme.typography.headlineMedium)
                                 currentReading?.trendArrow?.let(::trendArrowFromValue)?.let { trendArrow ->
-                                        TrendArrowBadge(
-                                            trendArrow = trendArrow,
-                                            backgroundColor = statusColor ?: MaterialTheme.colorScheme.surfaceVariant
-                                        )
-                                    }
+                                    TrendArrowBadge(
+                                        trendArrow = trendArrow,
+                                        backgroundColor = statusColor ?: MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                }
                             }
                             currentReading?.let { reading ->
                                 val time = remember(reading.timestamp) {

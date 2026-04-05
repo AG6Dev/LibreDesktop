@@ -2,24 +2,38 @@ package dev.ag6.libredesktop.ui.overview
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import dev.ag6.libredesktop.repository.readings.ReadingsRepository
+import dev.ag6.libredesktop.AppContext
 import dev.ag6.libredesktop.repository.settings.SettingsRepository
-import dev.ag6.libredesktop.util.scheduleRepeatingTask
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.minutes
 
 class OverviewScreenModel(
-    repository: ReadingsRepository,
+    appContext: AppContext,
     settingsRepository: SettingsRepository
 ) : ScreenModel {
     private val _uiState = MutableStateFlow(OverviewUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        _uiState.update { it.copy(isLoading = true) }
+        screenModelScope.launch {
+            appContext.isLoaded.collect { loaded ->
+                _uiState.update { it.copy(isLoading = !loaded) }
+            }
+        }
+
+        screenModelScope.launch {
+            appContext.currentReading.collect { reading ->
+                _uiState.update { it.copy(currentReading = reading) }
+            }
+        }
+
+        screenModelScope.launch {
+            appContext.graphData.collect { data ->
+                _uiState.update { it.copy(graphData = data) }
+            }
+        }
 
         screenModelScope.launch {
             settingsRepository.getReadingUnits().collect { readingUnit ->
@@ -36,20 +50,6 @@ class OverviewScreenModel(
         screenModelScope.launch {
             settingsRepository.getLowTarget().collect { lowTargetMgDl ->
                 _uiState.update { it.copy(lowTargetMgDl = lowTargetMgDl) }
-            }
-        }
-
-        screenModelScope.launch {
-            scheduleRepeatingTask(1.minutes) {
-                val currentReading = repository.getCurrentReading()
-                val graphData = repository.getGraphReadings()
-                _uiState.update { state ->
-                    state.copy(
-                        isLoading = false,
-                        currentReading = currentReading,
-                        graphData = graphData
-                    )
-                }
             }
         }
     }

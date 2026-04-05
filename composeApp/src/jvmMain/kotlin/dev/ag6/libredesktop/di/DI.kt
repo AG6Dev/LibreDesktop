@@ -3,6 +3,7 @@ package dev.ag6.libredesktop.di
 import com.github.javakeyring.Keyring
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.PreferencesSettings
+import dev.ag6.libredesktop.AppContext
 import dev.ag6.libredesktop.repository.auth.AuthRepository
 import dev.ag6.libredesktop.repository.auth.AuthRepositoryImpl
 import dev.ag6.libredesktop.repository.readings.ReadingsRepository
@@ -12,7 +13,6 @@ import dev.ag6.libredesktop.repository.settings.SettingsRepositoryImpl
 import dev.ag6.libredesktop.ui.auth.AuthScreenModel
 import dev.ag6.libredesktop.ui.overview.OverviewScreenModel
 import dev.ag6.libredesktop.ui.settings.SettingsScreenModel
-import dev.ag6.libredesktop.ui.theme.AppThemeController
 import io.ktor.client.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -52,11 +52,9 @@ fun appModule() = module {
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get(), get()) }
     single<ReadingsRepository> { ReadingsRepositoryImpl(get(), get(), get(), get()) }
     single<SettingsRepository> { SettingsRepositoryImpl(get()) }
-    single { AppThemeController(get()) }
+    single { AppContext(get(), get()) } onClose { it?.close() }
 
-    single<Keyring> { Keyring.create() } onClose {
-        it?.close()
-    }
+    single<Keyring> { Keyring.create() } onClose { it?.close() }
 }
 
 fun viewModelModule() = module {
