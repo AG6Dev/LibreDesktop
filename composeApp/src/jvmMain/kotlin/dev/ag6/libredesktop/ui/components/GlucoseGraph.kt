@@ -11,6 +11,7 @@ import com.patrykandpatrick.vico.compose.cartesian.*
 import com.patrykandpatrick.vico.compose.cartesian.axis.HorizontalAxis
 import com.patrykandpatrick.vico.compose.cartesian.axis.VerticalAxis
 import com.patrykandpatrick.vico.compose.cartesian.data.CartesianChartModel
+import com.patrykandpatrick.vico.compose.cartesian.data.CartesianLayerRangeProvider
 import com.patrykandpatrick.vico.compose.cartesian.decoration.HorizontalBox
 import com.patrykandpatrick.vico.compose.cartesian.decoration.HorizontalLine
 import com.patrykandpatrick.vico.compose.cartesian.layer.rememberLineCartesianLayer
@@ -18,6 +19,7 @@ import com.patrykandpatrick.vico.compose.common.Fill
 import com.patrykandpatrick.vico.compose.common.ProvideVicoTheme
 import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
+import com.patrykandpatrick.vico.compose.common.data.ExtraStore
 import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
 import java.time.Instant
 import java.time.ZoneId
@@ -53,8 +55,18 @@ fun GlucoseGraphView(
             minZoom = Zoom.Content,
             maxZoom = Zoom.Content
         )
+        val rangeProvider = remember(highTarget) {
+            if (highTarget != null) {
+                object : CartesianLayerRangeProvider {
+                    override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double =
+                        maxOf(maxY, highTarget)
+                }
+            } else {
+                CartesianLayerRangeProvider.auto()
+            }
+        }
         val chart = rememberCartesianChart(
-            rememberLineCartesianLayer(),
+            rememberLineCartesianLayer(rangeProvider = rangeProvider),
             startAxis = VerticalAxis.rememberStart(guideline = rememberLineComponent()),
             bottomAxis = HorizontalAxis.rememberBottom(
                 guideline = null,
