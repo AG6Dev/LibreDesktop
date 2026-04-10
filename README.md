@@ -15,3 +15,12 @@ Only supported and tested on Windows currently.
 ## Prerequisites
 
 - JDK 17+ (recommended)
+
+## Features
+
+- [x] Authentication with LibreView API
+- [x] Fetch and display current glucose reading
+- [x] Fetch and display glucose graph/history
+- [x] Notifications when glucose is out of target range
+- [ ] Can view multiple patients
+- [ ] Customizable taskbar widget with current glucose and trend arrow
