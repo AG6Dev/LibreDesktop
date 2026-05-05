@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Alarm
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -54,11 +55,13 @@ fun AlarmsScreenContent(
 ) {
     val coroutineScope = rememberCoroutineScope()
 
-    Surface {
+    Scaffold { innerPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 SectionCard(
@@ -69,7 +72,7 @@ fun AlarmsScreenContent(
                         title = "Enable alarms",
                         subtitle = "Send notification when glucose moves out of range"
                     ) {
-                        Switch(
+                        AlarmSwitch(
                             checked = settings.alarmsEnabled,
                             onCheckedChange = { onSettingsChanged(settings.copy(alarmsEnabled = it)) },
                         )
@@ -116,7 +119,7 @@ fun AlarmsScreenContent(
                             PreferenceRow(
                                 title = "Desktop notifications",
                             ) {
-                                Switch(
+                                AlarmSwitch(
                                     checked = settings.notificationsEnabled,
                                     onCheckedChange = { onSettingsChanged(settings.copy(notificationsEnabled = it)) },
                                 )
@@ -125,7 +128,7 @@ fun AlarmsScreenContent(
                             PreferenceRow(
                                 title = "Enable sound",
                             ) {
-                                Switch(
+                                AlarmSwitch(
                                     checked = settings.soundEnabled,
                                     onCheckedChange = { onSettingsChanged(settings.copy(soundEnabled = it)) },
                                 )
@@ -179,5 +182,22 @@ fun AlarmsScreenContent(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AlarmSwitch(
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Box(
+        modifier = Modifier.size(width = 52.dp, height = 32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Switch(
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }

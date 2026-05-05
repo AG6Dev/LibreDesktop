@@ -71,11 +71,13 @@ private fun SettingsScreenContent(
     onTargetsSaved: (Int, Int) -> Unit,
     onLogout: () -> Unit
 ) {
-    Surface {
+    Scaffold { innerPadding ->
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(12.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(16.dp)
         ) {
             item {
                 SectionCard(title = "Appearance", compact = true) {
