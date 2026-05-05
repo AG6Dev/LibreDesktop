@@ -59,7 +59,7 @@ fun GlucoseGraphView(
             if (highTarget != null) {
                 object : CartesianLayerRangeProvider {
                     override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double =
-                        maxOf(maxY, highTarget)
+                        maxOf(maxY + 3.0, highTarget)
                 }
             } else {
                 CartesianLayerRangeProvider.auto()

@@ -1,36 +1,36 @@
-package dev.ag6.libredesktop.ui.overview
+package dev.ag6.libredesktop.ui.dashboard
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
-import dev.ag6.libredesktop.AppContext
+import dev.ag6.libredesktop.GlobalAppState
 import dev.ag6.libredesktop.repository.settings.SettingsRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class OverviewScreenModel(
-    appContext: AppContext,
+class DashboardScreenModel(
+    globalAppState: GlobalAppState,
     settingsRepository: SettingsRepository
 ) : ScreenModel {
-    private val _uiState = MutableStateFlow(OverviewUiState())
+    private val _uiState = MutableStateFlow(DashboardUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
         screenModelScope.launch {
-            appContext.isLoaded.collect { loaded ->
+            globalAppState.isLoaded.collect { loaded ->
                 _uiState.update { it.copy(isLoading = !loaded) }
             }
         }
 
         screenModelScope.launch {
-            appContext.currentReading.collect { reading ->
+            globalAppState.currentReading.collect { reading ->
                 _uiState.update { it.copy(currentReading = reading) }
             }
         }
 
         screenModelScope.launch {
-            appContext.graphData.collect { data ->
+            globalAppState.graphData.collect { data ->
                 _uiState.update { it.copy(graphData = data) }
             }
         }

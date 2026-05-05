@@ -1,8 +1,6 @@
 package dev.ag6.libredesktop.ui.auth
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
@@ -10,8 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -61,7 +57,7 @@ private fun AuthScreenContent(
                 return@onKeyEvent true
             }, verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
+/*            Box(
                 modifier = Modifier.weight(1f).fillMaxHeight()
                     .clip(MaterialTheme.shapes.large.copy(topStart = CornerSize(0.dp), bottomStart = CornerSize(0.dp)))
                     .background(
@@ -71,7 +67,7 @@ private fun AuthScreenContent(
                             )
                         )
                     ),
-            )
+            )*/
 
             Column(
                 modifier = Modifier.weight(1f).fillMaxSize().padding(24.dp),

@@ -53,7 +53,7 @@ kotlin {
             implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogs.compose)
 
-            implementation(libs.notifier)
+            implementation(libs.composenativetray)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

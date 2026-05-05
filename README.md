@@ -24,3 +24,7 @@ Only supported and tested on Windows currently.
 - [x] Notifications when glucose is out of target range
 - [ ] Can view multiple patients
 - [ ] Customizable taskbar widget with current glucose and trend arrow
+
+Potential future features:
+
+- [ ] Allow for nightscout integration

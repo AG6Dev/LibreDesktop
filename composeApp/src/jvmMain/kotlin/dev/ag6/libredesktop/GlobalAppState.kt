@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlin.time.Duration.Companion.minutes
 
-class AppContext(
+class GlobalAppState(
     settingsRepository: SettingsRepository,
     private val readingsRepository: ReadingsRepository
 ) : AutoCloseable {
@@ -24,6 +24,12 @@ class AppContext(
     private val _currentReading = MutableStateFlow<GlucoseReading?>(null)
     val currentReading: StateFlow<GlucoseReading?> = _currentReading.asStateFlow()
 
+    private val _lowTargetMgDl = MutableStateFlow(70)
+    val lowTargetMgDl: StateFlow<Int> = _lowTargetMgDl.asStateFlow()
+
+    private val _highTargetMgDl = MutableStateFlow(180)
+    val highTargetMgDl: StateFlow<Int> = _highTargetMgDl.asStateFlow()
+
     private val _graphData = MutableStateFlow<List<GlucoseReading>>(emptyList())
     val graphData: StateFlow<List<GlucoseReading>> = _graphData.asStateFlow()
 
@@ -34,6 +40,18 @@ class AppContext(
         scope.launch {
             settingsRepository.getThemeMode().collect { mode ->
                 _themeMode.update { mode }
+            }
+        }
+
+        scope.launch {
+            settingsRepository.getLowTarget().collect { lowTarget ->
+                _lowTargetMgDl.update { lowTarget }
+            }
+        }
+
+        scope.launch {
+            settingsRepository.getHighTarget().collect { highTarget ->
+                _highTargetMgDl.update { highTarget }
             }
         }
 

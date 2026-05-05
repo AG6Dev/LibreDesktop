@@ -1,10 +1,10 @@
-package dev.ag6.libredesktop.ui.overview
+package dev.ag6.libredesktop.ui.dashboard
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Dashboard
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -23,21 +23,17 @@ import com.patrykandpatrick.vico.compose.cartesian.data.LineCartesianLayerModel
 import dev.ag6.libredesktop.model.reading.GlucoseReading
 import dev.ag6.libredesktop.model.reading.ReadingUnit
 import dev.ag6.libredesktop.model.reading.TrendArrow
-import dev.ag6.libredesktop.model.reading.TrendArrow.Companion.trendArrowFromValue
 import dev.ag6.libredesktop.ui.components.GlucoseGraphView
 import dev.ag6.libredesktop.ui.components.SectionCard
-import dev.ag6.libredesktop.ui.theme.statusHigh
-import dev.ag6.libredesktop.ui.theme.statusInRange
-import dev.ag6.libredesktop.ui.theme.statusLow
-import org.jetbrains.compose.resources.painterResource
+import dev.ag6.libredesktop.ui.components.glucoseStatusColor
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-object OverviewScreen : Tab {
+object DashboardTab : Tab {
     @Composable
     override fun Content() {
-        val screenModel = koinScreenModel<OverviewScreenModel>()
+        val screenModel = koinScreenModel<DashboardScreenModel>()
         val state by screenModel.uiState.collectAsState()
 
         OverviewScreenContent(
@@ -53,9 +49,9 @@ object OverviewScreen : Tab {
     override val options: TabOptions
         @Composable
         get() {
-            val icon = rememberVectorPainter(Icons.Default.Dashboard)
+            val icon = rememberVectorPainter(Icons.Default.Home)
             return remember {
-                TabOptions(0u, "Dashboard", icon)
+                TabOptions(0u, "LibreDesktop", icon)
             }
         }
 }
@@ -139,7 +135,7 @@ private fun OverviewScreenContent(
                             ) {
                                 Text(text = currentReading?.let { readingUnit.format(it.valueInMgPerDl) } ?: "--",
                                     style = MaterialTheme.typography.headlineMedium)
-                                currentReading?.trendArrow?.let(::trendArrowFromValue)?.let { trendArrow ->
+                                currentReading?.trendArrow?.let { trendArrow ->
                                     TrendArrowBadge(
                                         trendArrow = trendArrow,
                                         backgroundColor = statusColor ?: MaterialTheme.colorScheme.surfaceVariant
@@ -188,10 +184,10 @@ private fun OverviewScreenContent(
 }
 
 @Composable
-private fun TrendArrowBadge(
+fun TrendArrowBadge(
     trendArrow: TrendArrow,
     backgroundColor: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Box(
         modifier = modifier
@@ -200,20 +196,10 @@ private fun TrendArrowBadge(
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(trendArrow.imageVector),
+            imageVector = trendArrow.imageVector,
             contentDescription = trendArrow.name,
             tint = Color.White,
-            modifier = Modifier.size(22.dp)
+            modifier = Modifier.fillMaxSize(0.85f)
         )
     }
-}
-
-private fun glucoseStatusColor(
-    valueInMgPerDl: Int,
-    lowTargetMgDl: Int,
-    highTargetMgDl: Int
-): Color = when {
-    valueInMgPerDl < lowTargetMgDl -> statusLow
-    valueInMgPerDl > highTargetMgDl -> statusHigh
-    else -> statusInRange
 }

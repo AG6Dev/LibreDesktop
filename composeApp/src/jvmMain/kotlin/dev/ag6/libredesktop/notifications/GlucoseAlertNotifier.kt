@@ -1,32 +1,35 @@
 package dev.ag6.libredesktop.notifications
 
-import com.mmk.kmpnotifier.notification.NotifierManager
-import dev.ag6.libredesktop.AppContext
+import dev.ag6.libredesktop.GlobalAppState
 import dev.ag6.libredesktop.model.alarms.AlarmSettings
 import dev.ag6.libredesktop.model.reading.GlucoseReading
 import dev.ag6.libredesktop.model.reading.ReadingUnit
-import dev.ag6.libredesktop.model.reading.TrendArrow.Companion.trendArrowFromValue
 import dev.ag6.libredesktop.repository.settings.SettingsRepository
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import java.awt.Toolkit
 import java.io.File
 import javax.sound.sampled.AudioSystem
 import kotlin.time.Duration.Companion.minutes
 
-//TODO: if the user either presses on the notification, or opens the app while out of range at least once, disable the notifications
+data class AlertEvent(val title: String, val message: String, val isHigh: Boolean)
+
 class GlucoseAlertNotifier(
-    private val appContext: AppContext,
+    private val globalAppState: GlobalAppState,
     private val settingsRepository: SettingsRepository,
 ) : AutoCloseable {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val notifier = NotifierManager.getLocalNotifier()
+    private val _alerts = MutableSharedFlow<AlertEvent>(extraBufferCapacity = 4)
+    val alerts: SharedFlow<AlertEvent> = _alerts.asSharedFlow()
     private var lastAlertTime: Long = 0L
 
     init {
         scope.launch {
             combine(
-                appContext.currentReading,
+                globalAppState.currentReading,
                 settingsRepository.getAlarmSettings(),
                 settingsRepository.getLowTarget(),
                 settingsRepository.getHighTarget(),
@@ -35,9 +38,11 @@ class GlucoseAlertNotifier(
                 AlarmCheckData(reading, alarmSettings, lowTarget, highTarget, readingUnit)
             }.collect { checkAndFire(it) }
         }
+
     }
 
     private fun checkAndFire(data: AlarmCheckData) {
+
         val (reading, settings, lowTarget, highTarget) = data
         if (!settings.alarmsEnabled || reading == null) return
 
@@ -49,17 +54,13 @@ class GlucoseAlertNotifier(
         lastAlertTime = now
 
         val formattedValue = data.readingUnit.format(reading.valueInMgPerDl)
-        var message = if (reading.valueInMgPerDl < lowTarget) {
-            "Glucose LOW: $formattedValue"
-        } else {
-            "Glucose HIGH: $formattedValue"
-        }
-        message += "\nTrending: ${data.reading?.trendArrow?.let(::trendArrowFromValue).let { it?.emoji }}"
+        val isHigh = reading.valueInMgPerDl > highTarget
+        val level = if (isHigh) "HIGH" else "LOW"
+        val trend = data.reading?.trendArrow?.emoji ?: ""
+        val message = "Glucose $level: $formattedValue\nTrending: $trend"
 
-        notifier.notify {
-            title = "Glucose Alert"
-            body = message
-
+        if (settings.notificationsEnabled) {
+            _alerts.tryEmit(AlertEvent("Glucose Alert", message, isHigh))
         }
 
         if (settings.soundEnabled) {
@@ -69,7 +70,6 @@ class GlucoseAlertNotifier(
 
     private suspend fun playSound(path: String?) = withContext(Dispatchers.IO) {
         if (path == null) {
-            //TODO: Add a custom sound instead of the default beep
             Toolkit.getDefaultToolkit().beep()
             return@withContext
         }

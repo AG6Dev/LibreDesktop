@@ -1,29 +1,54 @@
 package dev.ag6.libredesktop.model.reading
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.ui.graphics.vector.ImageVector
 import dev.ag6.libredesktop.model.connection.GlucoseItem
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import libredesktop.composeapp.generated.resources.*
-import org.jetbrains.compose.resources.DrawableResource
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
-enum class TrendArrow(val value: Int, val imageVector: DrawableResource, val emoji: String) {
-    RapidlyFalling(1, Res.drawable.south_24px, "⬇️"), Falling(2, Res.drawable.south_east_24px, "↘️"), Flat(
-        3, Res.drawable.east_24px, "➡️"
+@Serializable(with = TrendArrowSerializer::class)
+enum class TrendArrow(val value: Int, val imageVector: ImageVector, val emoji: String) {
+    RapidlyFalling(1, Icons.Default.South, "⬇️"), Falling(2, Icons.Default.SouthEast, "↘️"), Flat(
+        3, Icons.Default.East, "➡️"
     ),
-    Rising(4, Res.drawable.north_east_24px, "↗️"), RapidlyRising(5, Res.drawable.north_24px, "⬆️");
+    Rising(4, Icons.Default.NorthEast, "↗️"), RapidlyRising(5, Icons.Default.North, "⬆️");
 
     companion object {
         fun trendArrowFromValue(value: Int): TrendArrow? = TrendArrow.entries.firstOrNull { it.value == value }
     }
 }
 
+object TrendArrowSerializer : KSerializer<TrendArrow> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("TrendArrow", PrimitiveKind.INT)
+
+    override fun serialize(encoder: Encoder, value: TrendArrow) {
+        encoder.encodeInt(value.value)
+    }
+
+    override fun deserialize(decoder: Decoder): TrendArrow {
+        val value = decoder.decodeInt()
+        return TrendArrow.trendArrowFromValue(value)
+            ?: throw SerializationException("Unknown TrendArrow value: $value")
+    }
+}
 
 @Serializable
 data class GlucoseReading(
-    val timestamp: Long, val valueInMgPerDl: Int, val trendArrow: Int?
+    val timestamp: Long,
+    val valueInMgPerDl: Int,
+    val trendArrow: TrendArrow?,
 )
 
 fun GlucoseItem.mapToGlucoseReading(): GlucoseReading {
@@ -33,10 +58,9 @@ fun GlucoseItem.mapToGlucoseReading(): GlucoseReading {
     val convertedTimestamp = localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
     return GlucoseReading(
-        timestamp = convertedTimestamp, valueInMgPerDl = this.valueInMgPerDl, trendArrow = this.trendArrow
+        timestamp = convertedTimestamp,
+        valueInMgPerDl = this.valueInMgPerDl,
+        trendArrow = this.trendArrow?.let(TrendArrow::trendArrowFromValue),
     )
 }
-
-
-
 

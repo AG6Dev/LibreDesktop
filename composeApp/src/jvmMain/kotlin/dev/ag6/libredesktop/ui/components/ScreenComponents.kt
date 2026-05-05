@@ -7,37 +7,46 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import dev.ag6.libredesktop.ui.theme.statusHigh
+import dev.ag6.libredesktop.ui.theme.statusInRange
+import dev.ag6.libredesktop.ui.theme.statusLow
 
 @Composable
 fun SectionCard(
     title: String,
     subtitle: String? = null,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
     actions: @Composable (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
+    val cardPadding = if (compact) 14.dp else 22.dp
+    val contentSpacing = if (compact) 10.dp else 18.dp
+    val titleStyle = if (compact) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge
+
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
         tonalElevation = 4.dp,
-        shadowElevation = 10.dp
+        shadowElevation = if (compact) 4.dp else 10.dp
     ) {
         Column(
-            modifier = Modifier.padding(22.dp),
-            verticalArrangement = Arrangement.spacedBy(18.dp)
+            modifier = Modifier.padding(cardPadding),
+            verticalArrangement = Arrangement.spacedBy(contentSpacing)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.Top
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(title, style = MaterialTheme.typography.titleLarge)
+                Column(verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 6.dp)) {
+                    Text(title, style = titleStyle)
                     subtitle?.let {
                         Text(
                             text = it,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -51,9 +60,9 @@ fun SectionCard(
 
 @Composable
 fun ScreenHeader(
-    eyebrow: String,
-    title: String,
-    subtitle: String,
+    eyebrow: String? = null,
+    title: String? = null,
+    subtitle: String? = null,
     trailing: @Composable (() -> Unit)? = null
 ) {
     Row(
@@ -65,17 +74,25 @@ fun ScreenHeader(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = eyebrow.uppercase(),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(text = title, style = MaterialTheme.typography.headlineLarge)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (eyebrow != null) {
+                Text(
+                    text = eyebrow.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            if (title != null) {
+                Text(text = title, style = MaterialTheme.typography.headlineLarge)
+            }
+
+            if (subtitle != null) {
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         if (trailing != null) {
             Spacer(modifier = Modifier.width(16.dp))
@@ -87,7 +104,7 @@ fun ScreenHeader(
 @Composable
 fun PreferenceRow(
     title: String,
-    subtitle: String,
+    subtitle: String? = null,
     control: @Composable () -> Unit
 ) {
     Row(
@@ -99,14 +116,28 @@ fun PreferenceRow(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Text(text = title, style = MaterialTheme.typography.bodyMedium)
+            subtitle?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         Spacer(modifier = Modifier.size(16.dp))
         control()
+    }
+}
+
+fun glucoseStatusColor(
+    valueInMgPerDl: Int,
+    lowTargetMgDl: Int,
+    highTargetMgDl: Int
+): Color {
+    return when {
+        valueInMgPerDl < lowTargetMgDl -> statusLow
+        valueInMgPerDl > highTargetMgDl -> statusHigh
+        else -> statusInRange
     }
 }
