@@ -23,6 +23,8 @@ import androidx.compose.ui.window.application
 import com.kdroid.composetray.tray.api.ExperimentalTrayAppApi
 import com.kdroid.composetray.tray.api.TrayApp
 import com.kdroid.composetray.tray.api.rememberTrayAppState
+import com.kdroid.composetray.utils.SingleInstanceManager
+import dev.ag6.libredesktop.autostart.AutoStartHandler
 import dev.ag6.libredesktop.di.initKoin
 import dev.ag6.libredesktop.model.reading.ReadingUnit
 import dev.ag6.libredesktop.model.reading.TrendArrow
@@ -36,12 +38,15 @@ import org.koin.compose.koinInject
 fun main() {
     initKoin()
     application {
+        val autoStartHandler = koinInject<AutoStartHandler>()
+
         val appState = koinInject<GlobalAppState>()
         val settingsRepository = koinInject<SettingsRepository>()
         val currentReading by appState.currentReading.collectAsState()
         val readingUnit by settingsRepository.getReadingUnits().collectAsState(initial = ReadingUnit.MMOL)
         val lowTargetMgDl by settingsRepository.getLowTarget().collectAsState(initial = 70)
         val highTargetMgDl by settingsRepository.getHighTarget().collectAsState(initial = 180)
+
 
         val trayIconColor =
             currentReading?.let { glucoseStatusColor(it.valueInMgPerDl, lowTargetMgDl, highTargetMgDl) }
@@ -53,8 +58,20 @@ fun main() {
 
         val trayAppState = rememberTrayAppState(
             initialWindowSize = DpSize(400.dp, 520.dp),
-            initiallyVisible = true,
+            initiallyVisible = !autoStartHandler.isStartedViaAutoStart(),
         )
+
+        val isSingleInstance = SingleInstanceManager.isSingleInstance(
+            onRestoreRequest = {
+                trayAppState.show()
+            }
+        )
+
+        if (!isSingleInstance) {
+            exitApplication()
+            return@application
+        }
+
 
         TrayApp(
             state = trayAppState,
@@ -90,6 +107,7 @@ fun main() {
                 Item("Open") { trayAppState.toggle() }
                 Item("Quit") { exitApplication() }
             }
+
         ) {
             TrayWindowContent(cornerRadius = 12.dp) {
                 App()

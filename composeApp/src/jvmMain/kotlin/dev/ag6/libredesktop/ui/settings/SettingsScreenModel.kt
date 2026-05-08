@@ -2,6 +2,7 @@ package dev.ag6.libredesktop.ui.settings
 
 import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import dev.ag6.libredesktop.autostart.AutoStartHandler
 import dev.ag6.libredesktop.model.reading.ReadingUnit
 import dev.ag6.libredesktop.model.theme.ThemeMode
 import dev.ag6.libredesktop.repository.auth.AuthRepository
@@ -13,7 +14,8 @@ import kotlinx.coroutines.launch
 
 class SettingsScreenModel(
     private val settingsRepository: SettingsRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val autoStartHandler: AutoStartHandler,
 ) : ScreenModel {
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
@@ -65,6 +67,24 @@ class SettingsScreenModel(
                 }
             }
         }
+
+        screenModelScope.launch {
+            settingsRepository.getLaunchOnStartup().collect { launchOnStartup ->
+                _uiState.update {
+                    it.copy(launchOnStartup = launchOnStartup)
+                }
+            }
+        }
+
+        screenModelScope.launch {
+            val isSupported = autoStartHandler.isSupported()
+            _uiState.update { it.copy(isAutoStartSupported = isSupported) }
+            if (!isSupported) return@launch
+
+            val isEnabled = autoStartHandler.isEnabled()
+            settingsRepository.setLaunchOnStartup(isEnabled)
+            _uiState.update { it.copy(launchOnStartup = isEnabled) }
+        }
     }
 
     fun onReadingUnitSelected(readingUnit: ReadingUnit) {
@@ -93,6 +113,27 @@ class SettingsScreenModel(
                 it.copy(
                     lowTargetMgDl = lowTargetMgDl,
                     highTargetMgDl = highTargetMgDl
+                )
+            }
+        }
+    }
+
+    fun onLaunchOnStartupChanged(enabled: Boolean) {
+        if (!_uiState.value.isAutoStartSupported) return
+
+        screenModelScope.launch {
+            _uiState.update { it.copy(isUpdatingAutoStart = true) }
+
+            val actualState = runCatching {
+                autoStartHandler.setEnabled(enabled)
+                autoStartHandler.isEnabled()
+            }.getOrElse { _uiState.value.launchOnStartup }
+
+            settingsRepository.setLaunchOnStartup(actualState)
+            _uiState.update {
+                it.copy(
+                    launchOnStartup = actualState,
+                    isUpdatingAutoStart = false,
                 )
             }
         }

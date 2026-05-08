@@ -2,6 +2,7 @@ package dev.ag6.libredesktop.repository.settings
 
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.ObservableSettings
+import com.russhwolf.settings.coroutines.getBooleanFlow
 import com.russhwolf.settings.coroutines.getIntFlow
 import com.russhwolf.settings.coroutines.getStringOrNullFlow
 import com.russhwolf.settings.set
@@ -69,11 +70,20 @@ class SettingsRepositoryImpl(private val settings: ObservableSettings) : Setting
             }
     }
 
+    override suspend fun setLaunchOnStartup(enabled: Boolean) {
+        settings[Keys.LAUNCH_ON_STARTUP_KEY] = enabled
+    }
+
+    override fun getLaunchOnStartup(): Flow<Boolean> {
+        return settings.getBooleanFlow(Keys.LAUNCH_ON_STARTUP_KEY, defaultValue = false)
+    }
+
     private object Keys {
         const val READING_UNITS_KEY = "reading_units"
         const val THEME_MODE_KEY = "theme_mode"
         const val HIGH_TARGET_KEY = "high_target"
         const val LOW_TARGET_KEY = "low_target"
         const val NOTIFICATION_SETTINGS_KEY = "notification_settings"
+        const val LAUNCH_ON_STARTUP_KEY = "launch_on_startup"
     }
 }

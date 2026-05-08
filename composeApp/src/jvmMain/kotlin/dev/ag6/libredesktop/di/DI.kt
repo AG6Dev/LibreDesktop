@@ -4,6 +4,7 @@ import com.github.javakeyring.Keyring
 import com.russhwolf.settings.ObservableSettings
 import com.russhwolf.settings.PreferencesSettings
 import dev.ag6.libredesktop.GlobalAppState
+import dev.ag6.libredesktop.autostart.AutoStartHandler
 import dev.ag6.libredesktop.notifications.GlucoseAlertNotifier
 import dev.ag6.libredesktop.repository.auth.AuthRepository
 import dev.ag6.libredesktop.repository.auth.AuthRepositoryImpl
@@ -50,6 +51,7 @@ fun appModule() = module {
     }
 
     single<ObservableSettings> { PreferencesSettings(Preferences.userRoot().node("dev/ag6/libredesktop")) }
+    single<AutoStartHandler> { AutoStartHandler() }
 
     single<AuthRepository> { AuthRepositoryImpl(get(), get(), get(), get()) }
     single<ReadingsRepository> { ReadingsRepositoryImpl(get(), get(), get(), get()) }
@@ -64,5 +66,5 @@ fun viewModelModule() = module {
     factory { AuthScreenModel(get()) }
     factory { DashboardScreenModel(get(), get()) }
     factory { AlarmsScreenModel(get()) }
-    factory { SettingsScreenModel(get(), get()) }
+    factory { SettingsScreenModel(get(), get(), get()) }
 }

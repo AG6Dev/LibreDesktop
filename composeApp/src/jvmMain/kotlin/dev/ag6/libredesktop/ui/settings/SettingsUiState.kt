@@ -9,5 +9,8 @@ data class SettingsUiState(
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
     val highTargetMgDl: Int = 180,
     val lowTargetMgDl: Int = 70,
-    val email: String? = null
+    val email: String? = null,
+    val launchOnStartup: Boolean = false,
+    val isAutoStartSupported: Boolean = false,
+    val isUpdatingAutoStart: Boolean = false,
 )

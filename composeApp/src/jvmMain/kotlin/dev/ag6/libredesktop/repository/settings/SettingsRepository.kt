@@ -20,4 +20,7 @@ interface SettingsRepository {
 
     suspend fun setAlarmSettings(alarmSettings: AlarmSettings)
     fun getAlarmSettings(): Flow<AlarmSettings>
+
+    suspend fun setLaunchOnStartup(enabled: Boolean)
+    fun getLaunchOnStartup(): Flow<Boolean>
 }

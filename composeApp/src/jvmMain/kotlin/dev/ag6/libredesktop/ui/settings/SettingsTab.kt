@@ -47,6 +47,7 @@ object SettingsScreen : Tab {
             onThemeModeSelected = screenModel::onThemeModeSelected,
             onReadingUnitSelected = screenModel::onReadingUnitSelected,
             onTargetsSaved = screenModel::onTargetsSaved,
+            onLaunchOnStartupChanged = screenModel::onLaunchOnStartupChanged,
             onLogout = {
                 screenModel.onLogout {
                     navigator?.parent?.replaceAll(AuthScreen())
@@ -69,6 +70,7 @@ private fun SettingsScreenContent(
     onThemeModeSelected: (ThemeMode) -> Unit,
     onReadingUnitSelected: (ReadingUnit) -> Unit,
     onTargetsSaved: (Int, Int) -> Unit,
+    onLaunchOnStartupChanged: (Boolean) -> Unit,
     onLogout: () -> Unit
 ) {
     Scaffold { innerPadding ->
@@ -135,6 +137,25 @@ private fun SettingsScreenContent(
                             min = state.lowTargetMgDl + step,
                             max = 400,
                             onValueChange = { onTargetsSaved(state.lowTargetMgDl, it) }
+                        )
+                    }
+                }
+            }
+
+            item {
+                SectionCard(title = "Startup", compact = true) {
+                    PreferenceRow(
+                        title = "Launch on startup",
+                        subtitle = if (state.isAutoStartSupported) {
+                            "Start LibreDesktop in the tray when you sign in."
+                        } else {
+                            "Available from a distributed app build."
+                        }
+                    ) {
+                        Switch(
+                            checked = state.launchOnStartup,
+                            onCheckedChange = onLaunchOnStartupChanged,
+                            enabled = state.isAutoStartSupported && !state.isUpdatingAutoStart
                         )
                     }
                 }

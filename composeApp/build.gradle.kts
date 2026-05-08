@@ -54,7 +54,10 @@ kotlin {
             implementation(libs.filekit.dialogs.compose)
 
             implementation(libs.composenativetray)
+
+            implementation(libs.autolaunch)
         }
+
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
@@ -72,9 +75,14 @@ compose.desktop {
     application {
         mainClass = "dev.ag6.libredesktop.MainKt"
         nativeDistributions {
-            targetFormats(TargetFormat.Msi)
+            targetFormats(TargetFormat.Exe)
             packageName = "LibreDesktop"
             packageVersion = "1.0.0"
+
+        }
+
+        buildTypes.release.proguard {
+            optimize.set(true)
         }
     }
 }
