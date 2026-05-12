@@ -28,6 +28,8 @@ import dev.ag6.libredesktop.autostart.AutoStartHandler
 import dev.ag6.libredesktop.di.initKoin
 import dev.ag6.libredesktop.model.reading.ReadingUnit
 import dev.ag6.libredesktop.model.reading.TrendArrow
+import dev.ag6.libredesktop.notifications.GlucoseAlertNotifier
+import dev.ag6.libredesktop.notifications.NotificationHost
 import dev.ag6.libredesktop.repository.settings.SettingsRepository
 import dev.ag6.libredesktop.ui.components.glucoseStatusColor
 import dev.ag6.libredesktop.ui.dashboard.TrendArrowBadge
@@ -41,8 +43,10 @@ fun main() {
         val autoStartHandler = koinInject<AutoStartHandler>()
 
         val appState = koinInject<GlobalAppState>()
+        val alertNotifier = koinInject<GlucoseAlertNotifier>()
         val settingsRepository = koinInject<SettingsRepository>()
         val currentReading by appState.currentReading.collectAsState()
+        val themeMode by appState.themeMode.collectAsState()
         val readingUnit by settingsRepository.getReadingUnits().collectAsState(initial = ReadingUnit.MMOL)
         val lowTargetMgDl by settingsRepository.getLowTarget().collectAsState(initial = 70)
         val highTargetMgDl by settingsRepository.getHighTarget().collectAsState(initial = 180)
@@ -113,6 +117,8 @@ fun main() {
                 App()
             }
         }
+
+        NotificationHost(alertNotifier, trayAppState, themeMode)
     }
 }
 

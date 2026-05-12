@@ -9,7 +9,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class AlarmsScreenModel(private val settings: SettingsRepository) : ScreenModel {
+class AlarmsScreenModel(
+    private val settings: SettingsRepository,
+) : ScreenModel {
     private val _uiState = MutableStateFlow(AlarmsUiState())
     val uiState = _uiState.asStateFlow()
 

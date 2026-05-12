@@ -27,6 +27,7 @@ import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import kotlinx.coroutines.launch
 
+//TODO: can just make the interval times to be text input field
 object AlarmsScreen : Tab {
     override val options: TabOptions
         @Composable get() {
@@ -43,7 +44,7 @@ object AlarmsScreen : Tab {
 
         AlarmsScreenContent(
             state.alarmSettings,
-            screenModel::onAlarmSettingsChanged,
+            screenModel::onAlarmSettingsChanged
         )
     }
 }
@@ -117,7 +118,7 @@ fun AlarmsScreenContent(
                             }
 
                             PreferenceRow(
-                                title = "Desktop notifications",
+                                title = "Custom notification",
                             ) {
                                 AlarmSwitch(
                                     checked = settings.notificationsEnabled,
@@ -132,6 +133,49 @@ fun AlarmsScreenContent(
                                     checked = settings.soundEnabled,
                                     onCheckedChange = { onSettingsChanged(settings.copy(soundEnabled = it)) },
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                AnimatedVisibility(
+                    visible = settings.alarmsEnabled && settings.notificationsEnabled,
+                    enter = expandVertically(),
+                    exit = shrinkVertically()
+                ) {
+                    SectionCard(
+                        title = "Notification",
+                        compact = true
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            PreferenceRow(
+                                title = "Display time",
+                            ) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                    listOf(3, 5, 10, 15).forEach { seconds ->
+                                        FilterChip(
+                                            selected = settings.notificationVisibilityLength == seconds,
+                                            onClick = {
+                                                onSettingsChanged(
+                                                    settings.copy(notificationVisibilityLength = seconds)
+                                                )
+                                            },
+                                            label = {
+                                                Text(
+                                                    "${seconds}s",
+                                                    style = MaterialTheme.typography.labelSmall
+                                                )
+                                            },
+                                            colors = FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+                                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
+                                            )
+                                        )
+                                    }
+                                }
                             }
                         }
                     }

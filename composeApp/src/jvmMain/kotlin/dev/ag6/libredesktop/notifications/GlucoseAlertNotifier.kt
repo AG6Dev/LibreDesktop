@@ -15,7 +15,12 @@ import java.io.File
 import javax.sound.sampled.AudioSystem
 import kotlin.time.Duration.Companion.minutes
 
-data class AlertEvent(val title: String, val message: String, val isHigh: Boolean)
+data class AlertEvent(
+    val title: String,
+    val message: String,
+    val isHigh: Boolean,
+    val displaySeconds: Int,
+)
 
 class GlucoseAlertNotifier(
     private val globalAppState: GlobalAppState,
@@ -42,7 +47,6 @@ class GlucoseAlertNotifier(
     }
 
     private fun checkAndFire(data: AlarmCheckData) {
-
         val (reading, settings, lowTarget, highTarget) = data
         if (!settings.alarmsEnabled || reading == null) return
 
@@ -53,19 +57,70 @@ class GlucoseAlertNotifier(
         if (now - lastAlertTime < settings.alarmInterval.minutes.inWholeMilliseconds) return
         lastAlertTime = now
 
-        val formattedValue = data.readingUnit.format(reading.valueInMgPerDl)
-        val isHigh = reading.valueInMgPerDl > highTarget
-        val level = if (isHigh) "HIGH" else "LOW"
-        val trend = data.reading?.trendArrow?.emoji ?: ""
-        val message = "Glucose $level: $formattedValue\nTrending: $trend"
+        val alert = buildAlert(
+            settings = settings,
+            valueMgDl = reading.valueInMgPerDl,
+            highTarget = highTarget,
+            readingUnit = data.readingUnit,
+            trend = reading.trendArrow?.emoji.orEmpty(),
+        )
 
         if (settings.notificationsEnabled) {
-            _alerts.tryEmit(AlertEvent("Glucose Alert", message, isHigh))
+            notify(alert)
         }
 
         if (settings.soundEnabled) {
             scope.launch(Dispatchers.IO) { playSound(settings.customSoundPath) }
         }
+    }
+
+    private fun notify(alert: AlertEvent) {
+        _alerts.tryEmit(alert)
+    }
+
+    private fun buildAlert(
+        settings: AlarmSettings,
+        valueMgDl: Int,
+        highTarget: Int,
+        readingUnit: ReadingUnit,
+        trend: String,
+    ): AlertEvent {
+        val isHigh = valueMgDl > highTarget
+        val level = if (isHigh) "HIGH" else "LOW"
+        val formattedValue = readingUnit.format(valueMgDl)
+        val values = mapOf(
+            "level" to level,
+            "value" to formattedValue,
+            "trend" to trend,
+        )
+
+        return AlertEvent(
+            title = settings.notificationTitleTemplate
+                .ifBlank { AlarmSettings.DEFAULT_NOTIFICATION_TITLE_TEMPLATE }
+                .renderTemplate(values),
+            message = settings.notificationMessageTemplate.withoutTargetRange()
+                .ifBlank { AlarmSettings.DEFAULT_NOTIFICATION_MESSAGE_TEMPLATE }
+                .renderTemplate(values),
+            isHigh = isHigh,
+            displaySeconds = settings.notificationVisibilityLength.normalizedDisplaySeconds(),
+        )
+    }
+
+    private fun String.renderTemplate(values: Map<String, String>): String {
+        return values.entries.fold(this) { text, (key, value) ->
+            text.replace("{$key}", value)
+        }
+    }
+
+    private fun String.withoutTargetRange(): String {
+        return lineSequence()
+            .filterNot { it.trim().startsWith("Target:") }
+            .joinToString("\n")
+            .trim()
+    }
+
+    private fun Int.normalizedDisplaySeconds(): Int {
+        return coerceIn(1, 60)
     }
 
     private suspend fun playSound(path: String?) = withContext(Dispatchers.IO) {
