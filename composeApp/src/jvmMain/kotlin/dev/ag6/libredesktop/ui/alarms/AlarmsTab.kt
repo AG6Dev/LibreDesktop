@@ -22,12 +22,12 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import dev.ag6.libredesktop.model.alarms.AlarmSettings
 import dev.ag6.libredesktop.ui.components.PreferenceRow
 import dev.ag6.libredesktop.ui.components.SectionCard
+import dev.ag6.libredesktop.ui.components.ValueStepper
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.openFilePicker
 import kotlinx.coroutines.launch
 
-//TODO: can just make the interval times to be text input field
 object AlarmsScreen : Tab {
     override val options: TabOptions
         @Composable get() {
@@ -149,35 +149,13 @@ fun AlarmsScreenContent(
                         title = "Notification",
                         compact = true
                     ) {
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            PreferenceRow(
-                                title = "Display time",
-                            ) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                    listOf(3, 5, 10, 15).forEach { seconds ->
-                                        FilterChip(
-                                            selected = settings.notificationVisibilityLength == seconds,
-                                            onClick = {
-                                                onSettingsChanged(
-                                                    settings.copy(notificationVisibilityLength = seconds)
-                                                )
-                                            },
-                                            label = {
-                                                Text(
-                                                    "${seconds}s",
-                                                    style = MaterialTheme.typography.labelSmall
-                                                )
-                                            },
-                                            colors = FilterChipDefaults.filterChipColors(
-                                                selectedContainerColor = MaterialTheme.colorScheme.primary,
-                                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                                                selectedLeadingIconColor = MaterialTheme.colorScheme.onPrimary,
-                                            )
-                                        )
-                                    }
-                                }
-                            }
-                        }
+                        ValueStepper(
+                            value = settings.notificationVisibilityLength.toFloat(),
+                            onValueChange = { onSettingsChanged(settings.copy(notificationVisibilityLength = it.toInt())) },
+                            min = 1.0f,
+                            max = 60.0f,
+                            title = "Display time (seconds)"
+                        )
                     }
                 }
             }

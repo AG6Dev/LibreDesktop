@@ -202,7 +202,7 @@ private fun TargetStepper(
     }
 
     ValueStepper(
-        label = label,
+        title = label,
         value = value.toFloat(),
         step = 1f,
         min = min.toFloat(),

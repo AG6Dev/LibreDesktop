@@ -24,7 +24,36 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ValueStepper(
-    label: String = "Value",
+    title: String = "Stepper",
+    value: Float = 0f,
+    step: Float = 1f,
+    min: Float = Float.MIN_VALUE,
+    max: Float = Float.MAX_VALUE,
+    allowDecimal: Boolean = false,
+    valueFormatter: (Float) -> String = { if (allowDecimal) it.toString() else it.toInt().toString() },
+    valueParser: (String) -> Float? = { if (allowDecimal) it.toFloatOrNull() else it.toIntOrNull()?.toFloat() },
+    previousValue: (Float) -> Float = { it - step },
+    nextValue: (Float) -> Float = { it + step },
+    onValueChange: (Float) -> Unit = {}
+) {
+    ValueStepper(
+        label = { Text(title, style = MaterialTheme.typography.bodyMedium) },
+        value = value,
+        step = step,
+        min = min,
+        max = max,
+        allowDecimal = allowDecimal,
+        valueFormatter = valueFormatter,
+        valueParser = valueParser,
+        previousValue = previousValue,
+        nextValue = nextValue,
+        onValueChange = onValueChange
+    )
+}
+
+@Composable
+fun ValueStepper(
+    label: @Composable () -> Unit = { Text("Stepper", style = MaterialTheme.typography.bodyMedium) },
     value: Float = 0f,
     step: Float = 1f,
     min: Float = Float.MIN_VALUE,
@@ -73,7 +102,8 @@ fun ValueStepper(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
+
+        label()
         Row(verticalAlignment = Alignment.CenterVertically) {
             IconButton(
                 onClick = { onValueChange(previous) },
@@ -83,7 +113,8 @@ fun ValueStepper(
                 Icon(
                     imageVector = Icons.Default.Remove,
                     contentDescription = "Decrease $label",
-                    modifier = Modifier.size(16.dp)
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.outline
                 )
             }
             Box(contentAlignment = Alignment.Center) {
@@ -122,7 +153,12 @@ fun ValueStepper(
                 enabled = next <= max,
                 modifier = Modifier.size(32.dp)
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Increase $label", modifier = Modifier.size(16.dp))
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Increase $label",
+                    modifier = Modifier.size(16.dp),
+                    tint = MaterialTheme.colorScheme.outline
+                )
             }
         }
     }
