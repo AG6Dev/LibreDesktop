@@ -66,8 +66,6 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
         }
     }
-
-
 }
 
 

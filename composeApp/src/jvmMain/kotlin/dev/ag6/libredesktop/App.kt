@@ -9,7 +9,6 @@ import dev.ag6.libredesktop.ui.theme.LibreDesktopTheme
 import org.koin.compose.koinInject
 
 //TODO: When the user has multiple patients attached, allow them to change between the patients
-//TODO: Add run on startup
 @Composable
 fun App() {
     val globalAppState = koinInject<GlobalAppState>()

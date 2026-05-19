@@ -21,6 +21,7 @@ import com.patrykandpatrick.vico.compose.common.component.rememberLineComponent
 import com.patrykandpatrick.vico.compose.common.component.rememberShapeComponent
 import com.patrykandpatrick.vico.compose.common.data.ExtraStore
 import com.patrykandpatrick.vico.compose.m3.common.rememberM3VicoTheme
+import dev.ag6.libredesktop.model.reading.ReadingUnit
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -30,6 +31,7 @@ fun GlucoseGraphView(
     chartModel: CartesianChartModel,
     lowTarget: Double? = null,
     highTarget: Double? = null,
+    unit: ReadingUnit = ReadingUnit.MGDL,
     modifier: Modifier = Modifier
 ) {
     ProvideVicoTheme(
@@ -58,8 +60,11 @@ fun GlucoseGraphView(
         val rangeProvider = remember(highTarget) {
             if (highTarget != null) {
                 object : CartesianLayerRangeProvider {
-                    override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double =
-                        maxOf(maxY + 3.0, highTarget)
+                    override fun getMaxY(minY: Double, maxY: Double, extraStore: ExtraStore): Double {
+                        val offsetMultiplier = if (unit == ReadingUnit.MGDL) 18.0 else 1.0
+
+                        return maxOf(maxY + (6.0 * offsetMultiplier), highTarget + (6.0 * offsetMultiplier))
+                    }
                 }
             } else {
                 CartesianLayerRangeProvider.auto()
@@ -67,14 +72,15 @@ fun GlucoseGraphView(
         }
         val chart = rememberCartesianChart(
             rememberLineCartesianLayer(rangeProvider = rangeProvider),
-            startAxis = VerticalAxis.rememberStart(guideline = rememberLineComponent()),
+            startAxis = VerticalAxis.rememberStart(
+                guideline = rememberLineComponent(),
+            ),
             bottomAxis = HorizontalAxis.rememberBottom(
                 guideline = null,
                 valueFormatter = { _, value, _ ->
                     timeFormatter.format(Instant.ofEpochMilli(value.toLong()))
                 }
             ),
-            fadingEdges = rememberFadingEdges(),
             decorations = listOfNotNull(
                 if (lowTarget != null && highTarget != null) {
                     HorizontalBox(

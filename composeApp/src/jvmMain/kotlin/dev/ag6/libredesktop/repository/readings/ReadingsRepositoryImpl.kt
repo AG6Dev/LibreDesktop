@@ -8,7 +8,7 @@ import dev.ag6.libredesktop.api.getLibreApiRegion
 import dev.ag6.libredesktop.model.connection.ConnectionData
 import dev.ag6.libredesktop.model.connection.GraphConnectionData
 import dev.ag6.libredesktop.model.reading.GlucoseReading
-import dev.ag6.libredesktop.model.reading.mapToGlucoseReading
+import dev.ag6.libredesktop.model.reading.asGlucoseReading
 import dev.ag6.libredesktop.repository.auth.AuthRepository
 import io.ktor.client.*
 import io.ktor.client.request.*
@@ -39,7 +39,7 @@ class ReadingsRepositoryImpl(
             is LibreApiCallResult.Success -> {
                 val connection = response.data.firstOrNull() ?: return null
                 settings.putString(PATIENT_ID_KEY, connection.patientId)
-                connection.glucoseItem.mapToGlucoseReading()
+                connection.glucoseItem.asGlucoseReading()
             }
 
             is LibreApiCallResult.Failure -> null
@@ -54,7 +54,7 @@ class ReadingsRepositoryImpl(
         ) ?: return emptyList()
 
         return when (response) {
-            is LibreApiCallResult.Success -> response.data.graphData.map { it.mapToGlucoseReading() }
+            is LibreApiCallResult.Success -> response.data.graphData.map { it.asGlucoseReading() }
             is LibreApiCallResult.Failure -> emptyList()
         }
     }

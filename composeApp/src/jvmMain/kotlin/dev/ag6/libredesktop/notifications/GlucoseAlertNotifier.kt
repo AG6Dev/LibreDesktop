@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.combine
 import java.awt.Toolkit
 import java.io.File
 import javax.sound.sampled.AudioSystem
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 data class AlertEvent(
@@ -88,35 +89,13 @@ class GlucoseAlertNotifier(
         val isHigh = valueMgDl > highTarget
         val level = if (isHigh) "HIGH" else "LOW"
         val formattedValue = readingUnit.format(valueMgDl)
-        val values = mapOf(
-            "level" to level,
-            "value" to formattedValue,
-            "trend" to trend,
-        )
 
         return AlertEvent(
-            title = settings.notificationTitleTemplate
-                .ifBlank { AlarmSettings.DEFAULT_NOTIFICATION_TITLE_TEMPLATE }
-                .renderTemplate(values),
-            message = settings.notificationMessageTemplate.withoutTargetRange()
-                .ifBlank { AlarmSettings.DEFAULT_NOTIFICATION_MESSAGE_TEMPLATE }
-                .renderTemplate(values),
+            title = "Glucose $level",
+            message = "$formattedValue $trend",
             isHigh = isHigh,
             displaySeconds = settings.notificationVisibilityLength.normalizedDisplaySeconds(),
         )
-    }
-
-    private fun String.renderTemplate(values: Map<String, String>): String {
-        return values.entries.fold(this) { text, (key, value) ->
-            text.replace("{$key}", value)
-        }
-    }
-
-    private fun String.withoutTargetRange(): String {
-        return lineSequence()
-            .filterNot { it.trim().startsWith("Target:") }
-            .joinToString("\n")
-            .trim()
     }
 
     private fun Int.normalizedDisplaySeconds(): Int {
@@ -133,7 +112,7 @@ class GlucoseAlertNotifier(
             val clip = AudioSystem.getClip()
             clip.open(stream)
             clip.start()
-            delay(clip.microsecondLength / 1000 + 200)
+            delay((clip.microsecondLength / 1000 + 200).milliseconds)
             clip.close()
         } catch (_: Exception) {
         }

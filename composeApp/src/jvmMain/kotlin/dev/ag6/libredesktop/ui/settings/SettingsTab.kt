@@ -1,29 +1,21 @@
 package dev.ag6.libredesktop.ui.settings
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -34,6 +26,8 @@ import dev.ag6.libredesktop.model.theme.ThemeMode
 import dev.ag6.libredesktop.ui.auth.AuthScreen
 import dev.ag6.libredesktop.ui.components.PreferenceRow
 import dev.ag6.libredesktop.ui.components.SectionCard
+import dev.ag6.libredesktop.ui.components.ValueStepper
+import kotlin.math.roundToInt
 
 object SettingsScreen : Tab {
     @Composable
@@ -124,7 +118,7 @@ private fun SettingsScreenContent(
                     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         TargetStepper(
                             label = "Low Target:",
-                            valueMgDl = state.lowTargetMgDl,
+                            value = state.lowTargetMgDl,
                             unit = state.readingUnit,
                             min = 40,
                             max = state.highTargetMgDl - step,
@@ -132,7 +126,7 @@ private fun SettingsScreenContent(
                         )
                         TargetStepper(
                             label = "High Target:",
-                            valueMgDl = state.highTargetMgDl,
+                            value = state.highTargetMgDl,
                             unit = state.readingUnit,
                             min = state.lowTargetMgDl + step,
                             max = 400,
@@ -196,74 +190,28 @@ private fun SettingsScreenContent(
 @Composable
 private fun TargetStepper(
     label: String,
-    valueMgDl: Int,
+    value: Int,
     unit: ReadingUnit,
     min: Int,
     max: Int,
     onValueChange: (Int) -> Unit
 ) {
-    val step = if (unit == ReadingUnit.MMOL) 2 else 1
-    var inputText by remember(unit) { mutableStateOf(unit.toDisplayValue(valueMgDl)) }
-    var isFocused by remember { mutableStateOf(false) }
-
-    LaunchedEffect(valueMgDl, unit) {
-        if (!isFocused) inputText = unit.toDisplayValue(valueMgDl)
+    fun stepValue(valueMgDl: Float, deltaMmol: Double): Float {
+        val currentMmol = unit.toDisplayValue(valueMgDl.roundToInt()).toDoubleOrNull() ?: return valueMgDl
+        return ((currentMmol + deltaMmol) * 18.0).roundToInt().toFloat()
     }
 
-    fun commit() {
-        val parsed = unit.parseDisplayValue(inputText)
-        if (parsed != null && parsed in min..max) onValueChange(parsed)
-        else inputText = unit.toDisplayValue(valueMgDl)
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            IconButton(
-                onClick = { onValueChange(valueMgDl - step) },
-                enabled = valueMgDl - step >= min,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(Icons.Default.Remove, contentDescription = "Decrease $label", modifier = Modifier.size(16.dp))
-            }
-            BasicTextField(
-                value = inputText,
-                onValueChange = {
-                    inputText = it
-                    val parsed = unit.parseDisplayValue(it)
-                    if (parsed != null && parsed in min..max) onValueChange(parsed)
-                },
-                modifier = Modifier
-                    .width(64.dp)
-                    .border(1.dp, MaterialTheme.colorScheme.outline, MaterialTheme.shapes.extraSmall)
-                    .padding(horizontal = 6.dp, vertical = 5.dp)
-                    .onFocusChanged { state ->
-                        if (isFocused && !state.isFocused) commit()
-                        isFocused = state.isFocused
-                    },
-                singleLine = true,
-                textStyle = MaterialTheme.typography.bodyMedium.copy(
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurface
-                ),
-                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Decimal,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(onDone = { commit() })
-            )
-            IconButton(
-                onClick = { onValueChange(valueMgDl + step) },
-                enabled = valueMgDl + step <= max,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Increase $label", modifier = Modifier.size(16.dp))
-            }
-        }
-    }
+    ValueStepper(
+        label = label,
+        value = value.toFloat(),
+        step = 1f,
+        min = min.toFloat(),
+        max = max.toFloat(),
+        allowDecimal = unit == ReadingUnit.MMOL,
+        valueFormatter = { unit.toDisplayValue(it.roundToInt()) },
+        valueParser = { unit.parseDisplayValue(it)?.toFloat() },
+        previousValue = { if (unit == ReadingUnit.MMOL) stepValue(it, -0.1) else it - 1f },
+        nextValue = { if (unit == ReadingUnit.MMOL) stepValue(it, 0.1) else it + 1f },
+        onValueChange = { onValueChange(it.roundToInt()) }
+    )
 }

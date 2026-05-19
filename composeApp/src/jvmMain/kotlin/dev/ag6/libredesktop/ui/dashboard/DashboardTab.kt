@@ -172,6 +172,7 @@ private fun OverviewScreenContent(
                             chartModel = chartModel,
                             lowTarget = lowTarget,
                             highTarget = highTarget,
+                            unit = readingUnit,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
